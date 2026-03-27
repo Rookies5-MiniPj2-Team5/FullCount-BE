@@ -1,9 +1,12 @@
 import { useState } from 'react'
+import { useAuth } from './context/AuthContext'
 import MeetupPage from './pages/MeetupPage'
 import CrewPage from './pages/CrewPage'
 import MyPage from './pages/MyPage'
 import SchedulePage from './pages/SchedulePage'
 import HomePage from './pages/HomePage'
+import LoginPage from './pages/LoginPage'
+import SignupPage from './pages/SignupPage'
 import './index.css'
 
 const NAV_ITEMS = [
@@ -15,7 +18,24 @@ const NAV_ITEMS = [
 ]
 
 export default function App() {
+  const { user, loading } = useAuth();
   const [tab, setTab] = useState('meetup')
+  const [authMode, setAuthMode] = useState('login'); // 'login' | 'signup'
+
+  if (loading) {
+    return (
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  // 로그인하지 않은 경우
+  if (!user) {
+    return authMode === 'login' 
+      ? <LoginPage onSwitchToSignup={() => setAuthMode('signup')} />
+      : <SignupPage onSwitchToLogin={() => setAuthMode('login')} />;
+  }
 
   const renderPage = () => {
     switch (tab) {

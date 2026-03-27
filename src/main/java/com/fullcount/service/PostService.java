@@ -31,9 +31,16 @@ public class PostService {
             throw new BusinessException(ErrorCode.TICKET_PRICE_EXCEEDED);
         }
 
+        Team homeTeam = req.getHomeTeamId() != null 
+                ? Team.builder().id(req.getHomeTeamId()).build() : null;
+        Team awayTeam = req.getAwayTeamId() != null 
+                ? Team.builder().id(req.getAwayTeamId()).build() : null;
+
         Post post = Post.builder()
                 .author(author)
                 .team(author.getTeam())
+                .homeTeam(homeTeam)
+                .awayTeam(awayTeam)
                 .boardType(req.getBoardType())
                 .title(req.getTitle())
                 .content(req.getContent())

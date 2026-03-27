@@ -1,100 +1,161 @@
-import { useState } from 'react'
-import { TeamBadge, TeamFilter } from '../components/TeamComponents'
-
-// 목 데이터
-const MEETUP_POSTS = [
-  {
-    id: 1,
-    date: '2026-03-28', time: '18:30', stadium: '잠실야구장',
-    homeTeam: 'LG', awayTeam: 'DU',
-    title: '3/28 잠실 LG vs 두산 같이 보실분~',
-    desc: '기아전 같이 보구가요! 3루 홈원정 자리 있습니다. 맥주 한잔 하면서 즐겁게 관람해요!',
-    author: '야구매니아', authorTeam: 'LG', authorInitial: '야',
-    current: 2, max: 4,
-  },
-  {
-    id: 2,
-    date: '2026-03-28', time: '18:30', stadium: '인천SSG랜더스필드',
-    homeTeam: 'SSG', awayTeam: 'KIA',
-    title: '인천 SSG 경기 보실 직관리 구해요',
-    desc: '퇴근하고 바로 가실 분! 외야석 예매했어요. 편하게 원하실 분 환영합니다.',
-    author: '랜더스사랑', authorTeam: 'SSG', authorInitial: '랜',
-    current: 1, max: 3,
-  },
-  {
-    id: 3,
-    date: '2026-03-28', time: '18:30', stadium: '대구삼성라이온즈파크',
-    homeTeam: 'SA', awayTeam: 'LO',
-    title: '대구 삼성 홈경기 같이 가요!',
-    desc: '삼성 라이온즈 20년차 팬입니다. 즐겁게 관람하실 분 구합니다.',
-    author: '라이온즈킹', authorTeam: 'SA', authorInitial: '라',
-    current: 1, max: 3,
-  },
-  {
-    id: 4,
-    date: '2026-03-29', time: '14:00', stadium: '수원KT위즈파크',
-    homeTeam: 'KT', awayTeam: 'NC',
-    title: 'KT vs NC 주말 직관 같이 해요 ⚾',
-    desc: '수원 경기 처음 가보시는 분도 환영! 경기장 맛집 알려드릴게요.',
-    author: '위즈팬', authorTeam: 'KT', authorInitial: '위',
-    current: 3, max: 5,
-  },
-]
+import { useState, useEffect } from 'react'
+import { useAuth } from '../context/AuthContext'
+import { TeamBadge, TeamFilter, TEAMS } from '../components/TeamComponents'
+import api from '../api/api'
 
 export default function MeetupPage() {
+  const { user } = useAuth();
+  const [posts, setPosts] = useState([])
   const [filter, setFilter] = useState('ALL')
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [loading, setLoading] = useState(true)
+
+  // 작성 폼 상태
+  const [formData, setFormData] = useState({
+    title: '', content: '', matchDate: '', 
+    homeTeamId: '', awayTeamId: '', maxParticipants: 2
+  })
+
+  const fetchPosts = async () => {
+    try {
+      setLoading(true)
+      const response = await api.get('/posts', { params: { boardType: 'MEETUP' } })
+      setPosts(response.data.content)
+    } catch (error) {
+      console.error('게시글 로딩 실패:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchPosts()
+  }, [])
+
+  const handleCreate = async (e) => {
+    e.preventDefault()
+    try {
+      await api.post('/posts', { ...formData, boardType: 'MEETUP' })
+      alert('모집글이 등록되었습니다!')
+      setIsModalOpen(false)
+      fetchPosts()
+    } catch (error) {
+      alert('등록에 실패했습니다.')
+    }
+  }
+
+  const handleDelete = async (postId) => {
+    if (!window.confirm('정말 삭제하시겠습니까?')) return
+    try {
+      await api.delete(`/posts/${postId}`)
+      fetchPosts()
+    } catch (error) {
+      alert('삭제 실패: 권한이 없거나 이미 예약된 글입니다.')
+    }
+  }
 
   const filtered = filter === 'ALL'
-    ? MEETUP_POSTS
-    : MEETUP_POSTS.filter(p => p.homeTeam === filter || p.awayTeam === filter)
+    ? posts
+    : posts.filter(p => p.homeTeamName === filter || p.awayTeamName === filter || p.teamName === filter)
 
   return (
     <div>
-      {/* 상단 */}
       <div className="top-bar">
         <h1><span className="icon">👥</span> 직관 메이트 모집</h1>
       </div>
 
-      {/* 팀 필터 */}
       <TeamFilter selected={filter} onChange={setFilter} />
 
-      {/* 게시글 목록 */}
       <div className="page-content">
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="empty-state"><p>로딩 중...</p></div>
+        ) : filtered.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">⚾</div>
-            <p>해당 팀의 모집글이 없습니다.</p>
+            <p>모집글이 없습니다. 첫 글을 작성해보세요!</p>
           </div>
         ) : filtered.map(post => (
           <div key={post.id} className="card">
             <div className="card-meta">
-              📅 {post.date} · {post.time} · {post.stadium}
+              📅 {post.matchDate} · 👤 {post.authorNickname}
+              {user?.nickname === post.authorNickname && (
+                <span 
+                  onClick={() => handleDelete(post.id)} 
+                  style={{ marginLeft: 'auto', color: '#e94560', cursor: 'pointer', fontSize: 10 }}
+                >삭제</span>
+              )}
             </div>
             <div className="card-vs">
-              <TeamBadge teamId={post.homeTeam} />
+              {post.homeTeamName ? <TeamBadge teamId={post.homeTeamName} /> : <TeamBadge teamId="LG" />}
               <span style={{ fontSize: 13, color: '#999' }}>VS</span>
-              <TeamBadge teamId={post.awayTeam} />
+              {post.awayTeamName ? <TeamBadge teamId={post.awayTeamName} /> : <TeamBadge teamId="DU" />}
             </div>
             <div className="card-title">{post.title}</div>
-            <div className="card-desc">{post.desc}</div>
+            <div className="card-desc">{post.content}</div>
             <div className="card-footer">
               <div className="author-info">
-                <div className="avatar-sm">{post.authorInitial}</div>
+                <div className="avatar-sm">{post.authorNickname.substring(0, 1)}</div>
                 <div>
-                  <div className="author-name">{post.author}</div>
-                  <TeamBadge teamId={post.authorTeam} />
+                  <div className="author-name">{post.authorNickname}</div>
+                  <TeamBadge teamId={post.teamName || 'LG'} />
                 </div>
               </div>
               <div className="participant-count">
-                👤 {post.current}/{post.max}
+                👤 {post.maxParticipants}명 모집
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* FAB 작성 버튼 */}
-      <button className="fab">👤</button>
+      <button className="fab" onClick={() => setIsModalOpen(true)}>➕</button>
+
+      {/* 작성 모달 (단순 구현) */}
+      {isModalOpen && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+          background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', 
+          alignItems: 'center', justifyContent: 'center', padding: 20
+        }}>
+          <div style={{ background: '#fff', borderRadius: 16, width: '100%', maxWidth: 400, padding: 24 }}>
+            <h3 style={{ marginBottom: 20 }}>직관 메이트 모집</h3>
+            <form onSubmit={handleCreate}>
+              <input 
+                placeholder="제목" className="chip" style={{ width: '100%', marginBottom: 12, borderRadius: 8, padding: 10, border: '1px solid #ddd' }}
+                value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} required
+              />
+              <textarea 
+                placeholder="내용" className="chip" style={{ width: '100%', height: 100, marginBottom: 12, borderRadius: 8, padding: 10, border: '1px solid #ddd' }}
+                value={formData.content} onChange={e => setFormData({...formData, content: e.target.value})} required
+              />
+              <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                <select 
+                  style={{ flex: 1, padding: 8, borderRadius: 8, border: '1px solid #ddd' }}
+                  onChange={e => setFormData({...formData, homeTeamId: e.target.value})} required
+                >
+                  <option value="">홈 팀 선택</option>
+                  {TEAMS.filter(t => t.id !== 'ALL').map((t, i) => <option key={t.id} value={i+1}>{t.name}</option>)}
+                </select>
+                <select 
+                   style={{ flex: 1, padding: 8, borderRadius: 8, border: '1px solid #ddd' }}
+                   onChange={e => setFormData({...formData, awayTeamId: e.target.value})} required
+                >
+                  <option value="">어웨이 선택</option>
+                  {TEAMS.filter(t => t.id !== 'ALL').map((t, i) => <option key={t.id} value={i+1}>{t.name}</option>)}
+                </select>
+              </div>
+              <input 
+                type="date" style={{ width: '100%', marginBottom: 20, padding: 8, borderRadius: 8, border: '1px solid #ddd' }}
+                value={formData.matchDate} onChange={e => setFormData({...formData, matchDate: e.target.value})} required
+              />
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button type="submit" style={{ flex: 1, padding: 12, background: '#e94560', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700 }}>등록</button>
+                <button type="button" onClick={() => setIsModalOpen(false)} style={{ flex: 1, padding: 12, background: '#eee', border: 'none', borderRadius: 8 }}>취소</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

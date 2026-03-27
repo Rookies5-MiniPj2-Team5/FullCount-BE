@@ -31,6 +31,14 @@ public class Post {
     @JoinColumn(name = "team_id")
     private Team team;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "home_team_id")
+    private Team homeTeam;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "away_team_id")
+    private Team awayTeam;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 15)
     private BoardType boardType;

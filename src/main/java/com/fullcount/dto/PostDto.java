@@ -25,6 +25,8 @@ public class PostDto {
         private BoardType boardType;
 
         private LocalDate matchDate;
+        private Long homeTeamId;
+        private Long awayTeamId;
         private Integer ticketPrice;
         private Integer maxParticipants;
     }
@@ -50,6 +52,10 @@ public class PostDto {
         private String title;
         private String content;
         private LocalDate matchDate;
+        private String homeTeamName;
+        private String homeTeamId;
+        private String awayTeamName;
+        private String awayTeamId;
         private Integer ticketPrice;
         private Integer maxParticipants;
         private String status;
@@ -65,6 +71,10 @@ public class PostDto {
                     .title(post.getTitle())
                     .content(post.getContent())
                     .matchDate(post.getMatchDate())
+                    .homeTeamName(post.getHomeTeam() != null ? post.getHomeTeam().getName() : null)
+                    .homeTeamId(post.getHomeTeam() != null ? post.getHomeTeam().getId().toString() : null)
+                    .awayTeamName(post.getAwayTeam() != null ? post.getAwayTeam().getName() : null)
+                    .awayTeamId(post.getAwayTeam() != null ? post.getAwayTeam().getId().toString() : null)
                     .ticketPrice(post.getTicketPrice())
                     .maxParticipants(post.getMaxParticipants())
                     .status(post.getStatus().name())
