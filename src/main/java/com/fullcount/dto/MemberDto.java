@@ -1,8 +1,10 @@
 package com.fullcount.dto;
 
 import com.fullcount.domain.Member;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 public class MemberDto {
 
@@ -33,12 +35,18 @@ public class MemberDto {
     }
 
     @Getter
+    @NoArgsConstructor
+    @Schema(description = "회원 정보 수정 요청")
     public static class UpdateRequest {
+        @Schema(description = "변경할 닉네임", example = "newNickname")
         private String nickname;
     }
 
     @Getter
+    @NoArgsConstructor
+    @Schema(description = "응원 팀 변경 요청")
     public static class ChangeTeamRequest {
+        @Schema(description = "변경할 팀 ID", example = "3")
         private Long teamId;
     }
 }
