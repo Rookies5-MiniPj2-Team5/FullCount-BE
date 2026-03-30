@@ -44,5 +44,6 @@ boot_log2.txt
 *.temp
 /tmp/
 
-### ETC ###
-.gemini/
+# Custom ignores
+bin/
+frontend/node_modules/
