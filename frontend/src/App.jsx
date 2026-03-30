@@ -49,22 +49,36 @@ export default function App() {
   }
 
   return (
-    <div style={{ position: 'relative', minHeight: '100vh' }}>
-      {renderPage()}
+    <div className="app-layout">
+      {/* 상단 헤더 & 내비게이션 */}
+      <header className="app-header">
+        <div className="container header-inner">
+          <div className="header-logo" onClick={() => setTab('home')}>
+            <h1><span className="icon">⚾</span> FULL COUNT</h1>
+          </div>
+          <nav className="nav-list">
+            {NAV_ITEMS.map(item => (
+              <button
+                key={item.id}
+                className={`nav-item ${tab === item.id ? 'active' : ''}`}
+                onClick={() => setTab(item.id)}
+              >
+                <span className="nav-icon">{item.icon}</span>
+                <span className="nav-label">{item.label}</span>
+              </button>
+            ))}
+          </nav>
+          <div className="header-actions">
+            {/* 알림, 프로필 등 추가 기능 공간 */}
+          </div>
+        </div>
+      </header>
 
-      {/* 하단 내비게이션 */}
-      <nav className="bottom-nav">
-        {NAV_ITEMS.map(item => (
-          <button
-            key={item.id}
-            className={`nav-item ${tab === item.id ? 'active' : ''}`}
-            onClick={() => setTab(item.id)}
-          >
-            <span className="nav-icon">{item.icon}</span>
-            <span className="nav-label">{item.label}</span>
-          </button>
-        ))}
-      </nav>
+      <main className="page-content">
+        <div className="container">
+          {renderPage()}
+        </div>
+      </main>
     </div>
   )
 }

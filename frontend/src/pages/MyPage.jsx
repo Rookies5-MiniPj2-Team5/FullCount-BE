@@ -23,8 +23,9 @@ export default function MyPage() {
 
   return (
     <div className="my-page">
-      <div className="top-bar">
-        <h1><span className="icon">👤</span> 마이페이지</h1>
+      <div className="page-header">
+        <h2 className="page-title">마이페이지</h2>
+        <p className="page-subtitle">내 정보와 직관 일정을 관리해보세요.</p>
       </div>
 
       <div className="my-profile-section">

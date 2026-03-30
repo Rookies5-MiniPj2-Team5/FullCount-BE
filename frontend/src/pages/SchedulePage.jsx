@@ -10,11 +10,13 @@ const SCHEDULES = [
 
 export default function SchedulePage() {
   return (
-    <div>
-      <div className="top-bar">
-        <h1><span className="icon">📅</span> 경기 일정</h1>
+    <div className="schedule-page">
+      <div className="page-header">
+        <h2 className="page-title">경기 일정</h2>
+        <p className="page-subtitle">KBO 리그 전체 경기 일정을 확인하고 직관을 계획해보세요.</p>
       </div>
-      <div className="page-content" style={{ paddingTop: 8 }}>
+      <div className="page-content">
+        <div className="card-grid">
         {SCHEDULES.map(s => (
           <div key={s.id} className="card">
             <div className="card-meta">📅 {s.date} · {s.time} · {s.stadium}</div>
@@ -25,6 +27,7 @@ export default function SchedulePage() {
             </div>
           </div>
         ))}
+        </div>
       </div>
     </div>
   )
