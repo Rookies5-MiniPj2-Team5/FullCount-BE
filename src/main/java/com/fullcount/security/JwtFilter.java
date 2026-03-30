@@ -1,5 +1,7 @@
 package com.fullcount.security;
 
+import com.fullcount.exception.BusinessException;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,19 +31,35 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String token = extractToken(request);
 
-        if (StringUtils.hasText(token) && jwtProvider.validateToken(token)) {
-            Long memberId = jwtProvider.getMemberId(token);
-            String role = jwtProvider.getRole(token);
+        try {
+            if (StringUtils.hasText(token)) {
+                Claims claims = jwtProvider.getClaims(token);
 
-            var auth = new UsernamePasswordAuthenticationToken(
-                    memberId,
-                    null,
-                    List.of(new SimpleGrantedAuthority("ROLE_" + role))
-            );
-            SecurityContextHolder.getContext().setAuthentication(auth);
+                Long memberId = Long.parseLong(claims.getSubject());
+                String role = claims.get("role", String.class);
+
+                if (memberId != null && role != null) {
+                    setAuthentication(memberId, role);
+                }
+            }
+        } catch (BusinessException e) {
+            SecurityContextHolder.clearContext();
+            log.warn("JWT 인증 실패: {}", e.getMessage());
+        } catch (Exception e) {
+            SecurityContextHolder.clearContext();
+            log.error("JWT 필터 오류: ", e);
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private void setAuthentication(Long memberId, String role) {
+        var auth = new UsernamePasswordAuthenticationToken(
+                memberId,
+                null, // 비밀번호는 필요 없음
+                List.of(new SimpleGrantedAuthority("ROLE_" + role))
+        );
+        SecurityContextHolder.getContext().setAuthentication(auth);
     }
 
     private String extractToken(HttpServletRequest request) {

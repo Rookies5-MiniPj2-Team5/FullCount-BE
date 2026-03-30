@@ -9,8 +9,9 @@ public enum ErrorCode {
     // 인증/인가
     INVALID_CREDENTIALS("AUTH_001", "이메일 또는 비밀번호가 올바르지 않습니다.", HttpStatus.UNAUTHORIZED),
     ACCESS_DENIED("AUTH_002", "접근 권한이 없습니다.", HttpStatus.FORBIDDEN),
-    INVALID_TOKEN("AUTH_003", "유효하지 않은 토큰입니다.", HttpStatus.UNAUTHORIZED),
-    EXPIRED_TOKEN("AUTH_004", "만료된 토큰입니다.", HttpStatus.UNAUTHORIZED),
+    INVALID_TOKEN("AUTH_003", "유효하지 않은 인증 토큰입니다.", HttpStatus.UNAUTHORIZED),
+    EXPIRED_TOKEN("AUTH_004", "만료된 인증 토큰입니다.", HttpStatus.UNAUTHORIZED),
+    INACTIVE_MEMBER("AUTH_005", "비활성화된 회원입니다.", HttpStatus.FORBIDDEN),
 
     // 회원
     MEMBER_NOT_FOUND("MEM_001", "존재하지 않는 회원입니다.", HttpStatus.NOT_FOUND),
