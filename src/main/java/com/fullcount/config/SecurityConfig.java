@@ -5,6 +5,7 @@ import com.fullcount.security.JwtProvider;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -20,6 +21,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.util.List;
 
@@ -27,10 +29,17 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@RequiredArgsConstructor
 public class SecurityConfig {
 
+    private final HandlerExceptionResolver resolver;
     private final JwtProvider jwtProvider;
+
+    // 생성자에 직접 @Qualifier를 붙여줍니다.
+    public SecurityConfig(@Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver,
+                          JwtProvider jwtProvider) {
+        this.resolver = resolver;
+        this.jwtProvider = jwtProvider;
+    }
 
     @Bean
     @Order(1)
@@ -44,6 +53,17 @@ public class SecurityConfig {
                 .formLogin(form -> form.disable())
                 .httpBasic(basic -> basic.disable())
                 .logout(logout -> logout.disable()) // API 체인에선 기본 로그아웃 필터 비활성화
+
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint((request, response, authException) ->
+                                // 에러 처리를 GlobalExceptionHandler로 위임
+                                resolver.resolveException(request, response, null, authException)
+                        )
+                        .accessDeniedHandler((request, response, accessDeniedException) ->
+                                resolver.resolveException(request, response, null, accessDeniedException)
+                        )
+                )
+
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/signup", "/api/auth/login", "/api/auth/refresh").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()

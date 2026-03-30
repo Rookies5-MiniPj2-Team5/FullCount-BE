@@ -1,5 +1,4 @@
 package com.fullcount.controller;
-
 import com.fullcount.dto.AuthDto;
 import com.fullcount.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -7,7 +6,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,7 +39,6 @@ public class AuthController {
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@AuthenticationPrincipal Long memberId) {
-        // 시큐리티가 이미 검증한 memberId를 파라미터로 받음
         authService.logout(memberId);
         return ResponseEntity.ok().build();
     }
