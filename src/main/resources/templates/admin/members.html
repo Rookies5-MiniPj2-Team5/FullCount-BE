@@ -5,83 +5,186 @@
     <title>회원 관리 - 풀카운트</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f8f9fa; }
-        .sidebar { min-height: 100vh; background-color: #1a1a2e; }
-        .sidebar a { color: #e0e0e0; text-decoration: none; display: block; padding: 10px 20px; }
-        .sidebar a:hover, .sidebar a.active { background-color: #16213e; color: #fff; }
-        .sidebar .brand { color: #e94560; font-size: 1.4rem; font-weight: bold; padding: 20px; border-bottom: 1px solid #333; }
-        .badge-ROOKIE { background-color: #6c757d; }
-        .badge-PRO { background-color: #0d6efd; }
-        .badge-ALL_STAR { background-color: #fd7e14; }
-        .badge-LEGEND { background-color: #dc3545; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f4f6f9;
+            color: #1a1a2e;
+        }
+
+        /* ===== 상단 내비게이션 ===== */
+        .admin-topnav {
+            background: #1a1a2e;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        .admin-topnav .nav-inner {
+            display: flex;
+            align-items: center;
+            height: 60px;
+            padding: 0 32px;
+            gap: 32px;
+        }
+        .admin-topnav .brand {
+            color: #e94560;
+            font-size: 1.3rem;
+            font-weight: 800;
+            white-space: nowrap;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .admin-topnav .nav-links {
+            display: flex;
+            gap: 4px;
+            flex: 1;
+        }
+        .admin-topnav .nav-links a {
+            color: #c0c0d0;
+            text-decoration: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .admin-topnav .nav-links a:hover { background: #16213e; color: #fff; }
+        .admin-topnav .nav-links a.active { background: #e94560; color: #fff; }
+        .admin-topnav .nav-right { display: flex; align-items: center; }
+        .admin-topnav .admin-badge {
+            background: rgba(233,69,96,0.2);
+            color: #e94560;
+            border: 1px solid rgba(233,69,96,0.4);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        /* ===== 메인 컨텐츠 ===== */
+        .admin-main { padding: 32px; max-width: 1400px; margin: 0 auto; }
+        .page-header { margin-bottom: 28px; }
+        .page-header h2 { font-size: 1.6rem; font-weight: 800; color: #1a1a2e; margin-bottom: 4px; }
+        .page-header p { font-size: 0.9rem; color: #6c757d; }
+
+        /* ===== 뱃지 ===== */
+        .badge-ROOKIE    { background-color: #6c757d !important; }
+        .badge-PRO       { background-color: #0d6efd !important; }
+        .badge-ALL_STAR  { background-color: #fd7e14 !important; }
+        .badge-LEGEND    { background-color: #dc3545 !important; }
+
+        /* ===== 테이블 ===== */
+        .table-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+            overflow: hidden;
+        }
+        .table { margin-bottom: 0; }
+        .table thead th {
+            background: #1a1a2e;
+            color: #fff;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border: none;
+            padding: 14px 16px;
+        }
+        .table tbody td {
+            padding: 14px 16px;
+            vertical-align: middle;
+            font-size: 0.9rem;
+            border-color: #f0f0f0;
+        }
+        .table tbody tr:hover { background-color: #f8f9fc; }
+        .pagination-wrap { padding: 20px; }
     </style>
 </head>
 <body>
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-2 sidebar p-0">
-            <div class="brand">⚾ Full Count</div>
-            <nav class="mt-2">
-                <a th:href="@{/admin/dashboard}">📊 대시보드</a>
-                <a th:href="@{/admin/members}" class="active">👥 회원 관리</a>
-                <a th:href="@{/admin/transfers}">💳 거래 모니터링</a>
-            </nav>
-        </div>
-        <div class="col-md-10 p-4">
-            <h2 class="mb-4 fw-bold">👥 회원 관리</h2>
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-dark">
-                        <tr>
-                            <th>ID</th>
-                            <th>이메일</th>
-                            <th>닉네임</th>
-                            <th>응원 팀</th>
-                            <th>뱃지</th>
-                            <th>매너 온도</th>
-                            <th>역할</th>
-                            <th>가입일</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr th:each="member : ${members}">
-                            <td th:text="${member.id}"></td>
-                            <td th:text="${member.email}"></td>
-                            <td th:text="${member.nickname}"></td>
-                            <td th:text="${member.team != null ? member.team.name : '-'}"></td>
-                            <td>
-                                <span class="badge"
-                                      th:classappend="'badge-' + ${member.badgeLevel}"
-                                      th:text="${member.badgeLevel}"></span>
-                            </td>
-                            <td th:text="${#numbers.formatDecimal(member.mannerTemperature, 1, 1)} + '°'"></td>
-                            <td th:text="${member.role}"></td>
-                            <td th:text="${#temporals.format(member.createdAt, 'yyyy-MM-dd')}"></td>
-                        </tr>
-                        </tbody>
-                    </table>
 
-                    <!-- 페이지네이션 -->
-                    <nav th:if="${members.totalPages > 1}">
-                        <ul class="pagination justify-content-center">
-                            <li class="page-item" th:classappend="${members.first} ? 'disabled'">
-                                <a class="page-link" th:href="@{/admin/members(page=${members.number - 1})}">이전</a>
-                            </li>
-                            <li class="page-item" th:each="i : ${#numbers.sequence(0, members.totalPages - 1)}"
-                                th:classappend="${i == members.number} ? 'active'">
-                                <a class="page-link" th:href="@{/admin/members(page=${i})}" th:text="${i + 1}"></a>
-                            </li>
-                            <li class="page-item" th:classappend="${members.last} ? 'disabled'">
-                                <a class="page-link" th:href="@{/admin/members(page=${members.number + 1})}">다음</a>
-                            </li>
-                        </ul>
-                    </nav>
-                </div>
-            </div>
+<!-- 상단 내비게이션 -->
+<nav class="admin-topnav">
+    <div class="nav-inner">
+        <a href="/admin/dashboard" class="brand">⚾ Full Count <span style="font-size:0.7rem; color:#aaa; font-weight:400;">관리자</span></a>
+        <div class="nav-links">
+            <a th:href="@{/admin/dashboard}">📊 대시보드</a>
+            <a th:href="@{/admin/members}" class="active">👥 회원 관리</a>
+            <a th:href="@{/admin/transfers}">💳 거래 모니터링</a>
+        </div>
+        <div class="nav-right">
+            <span class="admin-badge">🛡️ ADMIN</span>
         </div>
     </div>
-</div>
+</nav>
+
+<!-- 메인 컨텐츠 -->
+<main class="admin-main">
+    <div class="page-header">
+        <h2>👥 회원 관리</h2>
+        <p>전체 회원 목록을 조회하고 관리합니다.</p>
+    </div>
+
+    <div class="table-card">
+        <table class="table table-hover align-middle">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>이메일</th>
+                <th>닉네임</th>
+                <th>응원 팀</th>
+                <th>뱃지</th>
+                <th>매너 온도</th>
+                <th>역할</th>
+                <th>가입일</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="member : ${members}">
+                <td th:text="${member.id}"></td>
+                <td th:text="${member.email}"></td>
+                <td class="fw-semibold" th:text="${member.nickname}"></td>
+                <td th:text="${member.team != null ? member.team.name : '-'}"></td>
+                <td>
+                    <span class="badge"
+                          th:classappend="'badge-' + ${member.badgeLevel}"
+                          th:text="${member.badgeLevel}"></span>
+                </td>
+                <td>
+                    <span class="fw-bold" th:text="${#numbers.formatDecimal(member.mannerTemperature, 1, 1)} + '°'"></span>
+                </td>
+                <td th:text="${member.role}"></td>
+                <td th:text="${#temporals.format(member.createdAt, 'yyyy-MM-dd')}"></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <!-- 페이지네이션 -->
+        <div class="pagination-wrap" th:if="${members.totalPages > 1}">
+            <nav>
+                <ul class="pagination justify-content-center mb-0">
+                    <li class="page-item" th:classappend="${members.first} ? 'disabled'">
+                        <a class="page-link" th:href="@{/admin/members(page=${members.number - 1})}">이전</a>
+                    </li>
+                    <li class="page-item"
+                        th:each="i : ${#numbers.sequence(0, members.totalPages - 1)}"
+                        th:classappend="${i == members.number} ? 'active'">
+                        <a class="page-link" th:href="@{/admin/members(page=${i})}" th:text="${i + 1}"></a>
+                    </li>
+                    <li class="page-item" th:classappend="${members.last} ? 'disabled'">
+                        <a class="page-link" th:href="@{/admin/members(page=${members.number + 1})}">다음</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</main>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
