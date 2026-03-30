@@ -46,4 +46,4 @@ boot_log2.txt
 
 # Custom ignores
 bin/
-frontend/node_modules/
+frontend/fullcount/node_modules/
