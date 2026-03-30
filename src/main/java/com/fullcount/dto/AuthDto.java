@@ -29,7 +29,7 @@ public class AuthDto {
         @Size(min = 8, message = "비밀번호는 최소 8자 이상이어야 합니다.")
         private String password;
 
-        @Schema(description = "응원 팀 ID", example = "2")
+        @Schema(description = "응원 팀 ID", example = "1")
         @NotNull(message = "응원 팀을 선택해주세요.")
         private Long teamId;
     }
