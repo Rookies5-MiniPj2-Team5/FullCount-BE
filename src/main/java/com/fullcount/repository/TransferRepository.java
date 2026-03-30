@@ -11,14 +11,17 @@ import java.util.Optional;
 
 public interface TransferRepository extends JpaRepository<Transfer, Long> {
 
-    @Query("SELECT t FROM Transfer t JOIN FETCH t.post JOIN FETCH t.seller WHERE t.id = :id")
-    Optional<Transfer> findByIdWithDetails(Long id);
+    @Query("SELECT t FROM Transfer t JOIN FETCH t.post JOIN FETCH t.seller JOIN FETCH t.buyer WHERE t.id = :id")
+    Optional<Transfer> findByIdWithDetails(@Param("id") Long id);
 
-    List<Transfer> findBySellerId(Long sellerId);
+    @Query("SELECT t FROM Transfer t JOIN FETCH t.post JOIN FETCH t.seller JOIN FETCH t.buyer WHERE t.seller.id = :sellerId")
+    List<Transfer> findBySellerId(@Param("sellerId") Long sellerId);
 
-    List<Transfer> findByBuyerId(Long buyerId);
+    @Query("SELECT t FROM Transfer t JOIN FETCH t.post JOIN FETCH t.seller JOIN FETCH t.buyer WHERE t.buyer.id = :buyerId")
+    List<Transfer> findByBuyerId(@Param("buyerId") Long buyerId);
 
-    List<Transfer> findByStatus(TransferStatus status);
+    @Query("SELECT t FROM Transfer t JOIN FETCH t.post JOIN FETCH t.seller JOIN FETCH t.buyer WHERE t.status = :status")
+    List<Transfer> findByStatus(@Param("status") TransferStatus status);
 
     boolean existsByPostId(@Param("postId") Long postId);
 }

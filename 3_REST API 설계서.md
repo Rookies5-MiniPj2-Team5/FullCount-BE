@@ -262,11 +262,12 @@ Authorization: Bearer {JWT_TOKEN}
 
 ### 4.3 티켓 양도 API (Transfers)
 
-#### 4.3.1 양도 요청 (MEMBER)
+#### 4.3.1 양도 요청 (순서 1: 양수자)
 ```
 POST /api/transfers/{postId}/request
 Authorization: Bearer {JWT_TOKEN}
 ```
+**설명:** 게시글을 보고 양수자(구매 희망자)가 양도 요청을 보냅니다. 이때 채팅방이 자동으로 생성됩니다.
 **Response 201 Created:**
 ```json
 {
@@ -275,6 +276,39 @@ Authorization: Bearer {JWT_TOKEN}
 }
 ```
 **Error 422 (TRF_004)**: 자신의 게시글에 양도 요청 시
+
+#### 4.3.2 에스크로 결제 (순서 2: 양수자)
+```
+POST /api/transfers/{transferId}/pay
+Authorization: Bearer {JWT_TOKEN}
+```
+**설명:** 양수자가 에스크로 계좌(중간 지점)로 티켓 값을 결제합니다. 돈은 아직 판매자에게 전달되지 않습니다.
+**Response 200 OK:**
+```json
+{ "success": true, "data": { "status": "PAID" } }
+```
+
+#### 4.3.3 티켓 전달 완료 (순서 3: 양도자)
+```
+POST /api/transfers/{transferId}/ticket-sent
+Authorization: Bearer {JWT_TOKEN}
+```
+**설명:** 입금을 확인한 양도자(판매자)가 실제 티켓(핀번호 등)을 전달하고 '전달 완료' 표시를 합니다.
+**Response 200 OK:**
+```json
+{ "success": true, "data": { "status": "TICKET_SENT" } }
+```
+
+#### 4.3.4 인수 확정 및 정산 (순서 4: 양수자)
+```
+POST /api/transfers/{transferId}/confirm
+Authorization: Bearer {JWT_TOKEN}
+```
+**설명:** 티켓을 정상적으로 받은 양수자가 '인수 확정'을 누릅니다. 이때 판매자에게 정산(돈 입금)이 완료됩니다.
+**Response 200 OK:**
+```json
+{ "success": true, "data": { "status": "COMPLETED" } }
+```
 
 ---
 
@@ -331,6 +365,28 @@ Authorization: Bearer {JWT_TOKEN}
 | `POST` | `/api/auth/signup` | 회원가입 | 공개 |
 | `POST` | `/api/auth/login` | 로그인 | 공개 |
 | `POST` | `/api/auth/refresh` | 토큰 재발급 | 공개 |
+| `POST` | `/api/auth/logout` | 로그아웃 | MEMBER |
+| `GET` | `/api/posts` | 게시글 목록 조회 | 공개 |
+| `POST` | `/api/posts` | 게시글 작성 | MEMBER |
+| `POST` | `/api/transfers/:postId/request` | 양도 요청 | MEMBER |
+| `POST` | `/api/transfers/:transferId/pay` | 에스크로 결제 | MEMBER |
+| `POST` | `/api/transfers/:transferId/ticket-sent` | 티켓 전달 완료 | MEMBER |
+| `POST` | `/api/transfers/:transferId/confirm` | 인수 확정 (정산) | MEMBER |
+| `GET` | `/api/members/me` | 내 정보 조회 | MEMBER |
+| `PUT` | `/api/members/me/team` | 응원 팀 변경 | MEMBER |
+| `GET` | `/api/admin/members` | 회원 관리 목록 | ADMIN |
+| `PATCH` | `/api/admin/members/:id/status` | 회원 상태 변경 | ADMIN |
+
+---
+
+## 6. 작성 체크리스트
+
+- [x] 인증 API 전항목 (`signup`, `login`, `refresh`, `logout`) 상세 정의
+- [x] 비즈니스 예외 상황 (`ErrorCode`) 및 상태 코드 매핑 반영
+- [x] 게시글, 양도, 회원, 관리자, 채팅 API 누락 없이 포함
+- [x] Request/Response JSON 예시 (DTO 기준) 작성
+- [x] 권한 레벨 (공개/MEMBER/ADMIN) 명시
+ `/api/auth/refresh` | 토큰 재발급 | 공개 |
 | `POST` | `/api/auth/logout` | 로그아웃 | MEMBER |
 | `GET` | `/api/posts` | 게시글 목록 조회 | 공개 |
 | `POST` | `/api/posts` | 게시글 작성 | MEMBER |

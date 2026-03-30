@@ -31,6 +31,13 @@ public enum ErrorCode {
     TRANSFER_ALREADY_EXISTS("TRF_003", "이미 거래가 진행 중인 게시글입니다.", HttpStatus.CONFLICT),
     TRANSFER_SELF_NOT_ALLOWED("TRF_004", "자신의 게시글에는 양도 요청할 수 없습니다.", HttpStatus.BAD_REQUEST),
 
+    TRANSFER_PAYMENT_NOT_ALLOWED("TRF_005", "결제는 REQUESTED 상태에서만 가능합니다.", HttpStatus.BAD_REQUEST),
+    TRANSFER_TICKET_SEND_NOT_ALLOWED("TRF_006", "결제 완료 후에만 티켓 전달 처리가 가능합니다.", HttpStatus.BAD_REQUEST),
+    TRANSFER_CONFIRM_NOT_ALLOWED("TRF_007", "인수 확정은 결제 완료 이후 단계에서만 가능합니다.", HttpStatus.BAD_REQUEST),
+    TRANSFER_CANCEL_NOT_ALLOWED("TRF_008", "이미 완료된 거래는 취소할 수 없습니다.", HttpStatus.BAD_REQUEST),
+
+    INSUFFICIENT_BALANCE("PAY_001", "잔액이 부족합니다.", HttpStatus.BAD_REQUEST),
+
     // 팀
     TEAM_NOT_FOUND("TEAM_001", "존재하지 않는 팀입니다.", HttpStatus.NOT_FOUND),
 
