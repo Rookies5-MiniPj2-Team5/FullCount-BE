@@ -2,7 +2,9 @@ package com.fullcount.config;
 
 import com.fullcount.security.JwtFilter;
 import com.fullcount.security.JwtProvider;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -21,6 +23,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
+@Slf4j
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -40,21 +43,15 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .formLogin(form -> form.disable())
                 .httpBasic(basic -> basic.disable())
+                .logout(logout -> logout.disable()) // API 체인에선 기본 로그아웃 필터 비활성화
                 .authorizeHttpRequests(auth -> auth
-                        // 공개 접근 허용
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/teams/**").permitAll()
-                        // Swagger, H2 콘솔
+                        .requestMatchers("/api/auth/signup", "/api/auth/login", "/api/auth/refresh").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
-                        // 관리자 전용
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        // 나머지 인증 필요
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class)
-                // H2 콘솔 iframe 허용
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()));
 
         return http.build();
