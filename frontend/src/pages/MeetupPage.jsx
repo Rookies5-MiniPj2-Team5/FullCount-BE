@@ -59,9 +59,10 @@ export default function MeetupPage() {
     : posts.filter(p => p.homeTeamName === filter || p.awayTeamName === filter || p.teamName === filter)
 
   return (
-    <div>
-      <div className="top-bar">
-        <h1><span className="icon">👥</span> 직관 메이트 모집</h1>
+    <div className="meetup-page">
+      <div className="page-header">
+        <h2 className="page-title">직관 메이트 모집</h2>
+        <p className="page-subtitle">함께 야구장에 갈 직관 메이트를 찾아보세요!</p>
       </div>
 
       <TeamFilter selected={filter} onChange={setFilter} />
@@ -74,7 +75,9 @@ export default function MeetupPage() {
             <div className="empty-icon">⚾</div>
             <p>모집글이 없습니다. 첫 글을 작성해보세요!</p>
           </div>
-        ) : filtered.map(post => (
+        ) : (
+          <div className="card-grid">
+            {filtered.map(post => (
           <div key={post.id} className="card">
             <div className="card-meta">
               📅 {post.matchDate} · 👤 {post.authorNickname}
@@ -105,7 +108,9 @@ export default function MeetupPage() {
               </div>
             </div>
           </div>
-        ))}
+            ))}
+          </div>
+        )}
       </div>
 
       <button className="fab" onClick={() => setIsModalOpen(true)}>➕</button>

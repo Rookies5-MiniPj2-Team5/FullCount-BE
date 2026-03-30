@@ -30,32 +30,32 @@ const CREWS = [
 
 export default function CrewPage() {
   return (
-    <div>
-      <div className="top-bar">
-        <h1><span className="icon">👥</span> 직관 크루</h1>
-        <p style={{ fontSize: 13, color: '#999', marginTop: 4 }}>
-          정기적으로 함께하는 크루를 찾아보세요
-        </p>
+    <div className="crew-page">
+      <div className="page-header">
+        <h2 className="page-title">직관 크루</h2>
+        <p className="page-subtitle">정기적으로 함께 열띤 응원을 펼칠 크루를 찾아보세요!</p>
       </div>
 
-      <div className="page-content" style={{ paddingTop: 8 }}>
-        {CREWS.map(crew => (
-          <div key={crew.id} className="crew-card">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <div className="crew-name">{crew.name}</div>
-            </div>
-            <TeamBadge teamId={crew.teamId} />
-            <div className="crew-desc" style={{ marginTop: 8 }}>{crew.desc}</div>
-            <div className="crew-stats">
-              <div className="crew-stat">
-                👤 멤버 <span>{crew.members}명</span>
+      <div className="page-content">
+        <div className="card-grid">
+          {CREWS.map(crew => (
+            <div key={crew.id} className="card crew-card">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <div className="crew-name">{crew.name}</div>
               </div>
-              <div className="crew-stat">
-                📅 활동 <span>{crew.activity}</span>
+              <TeamBadge teamId={crew.teamId} />
+              <div className="crew-desc" style={{ marginTop: 8 }}>{crew.desc}</div>
+              <div className="crew-stats">
+                <div className="crew-stat">
+                  👤 멤버 <span>{crew.members}명</span>
+                </div>
+                <div className="crew-stat">
+                  📅 활동 <span>{crew.activity}</span>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       <button className="fab">➕</button>

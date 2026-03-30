@@ -2,18 +2,17 @@ import { TeamBadge } from '../components/TeamComponents'
 
 export default function HomePage() {
   return (
-    <div>
-      <div className="top-bar">
-        <h1>⚾ 풀카운트</h1>
+    <div className="home-page">
+      <div className="page-header">
+        <h2 className="page-title">⚾ FULL COUNT</h2>
+        <p className="page-subtitle">대한민국 야구 직관의 모든 것, 풀카운트와 함께하세요!</p>
       </div>
-      <div className="page-content" style={{ padding: '20px 16px 80px' }}>
+      <div className="page-content">
 
         {/* 배너 */}
         <div style={{
           background: 'linear-gradient(135deg, #1a2a4a 0%, #e94560 100%)',
           borderRadius: 16,
-          padding: '24px 20px',
-          color: '#fff',
           marginBottom: 20,
         }}>
           <div style={{ fontSize: 13, opacity: 0.8, marginBottom: 4 }}>오늘의 경기</div>
