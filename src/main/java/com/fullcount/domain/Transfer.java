@@ -1,5 +1,7 @@
 package com.fullcount.domain;
 
+import com.fullcount.exception.BusinessException;
+import com.fullcount.exception.ErrorCode;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -53,7 +55,7 @@ public class Transfer {
     /** 에스크로 결제 완료 처리 */
     public void payEscrow(Member buyer) {
         if (this.status != TransferStatus.REQUESTED) {
-            throw new IllegalStateException("결제는 REQUESTED 상태에서만 가능합니다.");
+            throw new BusinessException(ErrorCode.TRANSFER_PAYMENT_NOT_ALLOWED);
         }
         this.buyer = buyer;
         this.status = TransferStatus.PAYMENT_COMPLETED;
@@ -62,7 +64,7 @@ public class Transfer {
     /** 양도자가 티켓 전달 완료 처리 */
     public void markTicketSent() {
         if (this.status != TransferStatus.PAYMENT_COMPLETED) {
-            throw new IllegalStateException("결제 완료 후에만 티켓 전달 처리가 가능합니다.");
+            throw new BusinessException(ErrorCode.TRANSFER_TICKET_SEND_NOT_ALLOWED);
         }
         this.status = TransferStatus.TICKET_SENT;
     }
@@ -70,7 +72,7 @@ public class Transfer {
     /** 양수자 인수 확정 → 정산 완료 */
     public void confirmTransfer() {
         if (this.status != TransferStatus.TICKET_SENT && this.status != TransferStatus.PAYMENT_COMPLETED) {
-            throw new IllegalStateException("인수 확정은 결제 완료 이후 단계에서만 가능합니다.");
+            throw new BusinessException(ErrorCode.TRANSFER_CONFIRM_NOT_ALLOWED);
         }
         this.status = TransferStatus.COMPLETED;
     }
@@ -78,7 +80,7 @@ public class Transfer {
     /** 거래 취소 */
     public void cancelTransfer() {
         if (this.status == TransferStatus.COMPLETED) {
-            throw new IllegalStateException("이미 완료된 거래는 취소할 수 없습니다.");
+            throw new BusinessException(ErrorCode.TRANSFER_CANCEL_NOT_ALLOWED);
         }
         this.status = TransferStatus.CANCELLED;
     }
