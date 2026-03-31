@@ -36,7 +36,7 @@ public class MemberDto {
 
     @Getter
     @NoArgsConstructor
-    @Schema(description = "회원 정보 수정 요청")
+    @Schema(name = "MemberUpdateRequest", description = "회원 정보 수정 요청")
     public static class UpdateRequest {
         @Schema(description = "변경할 닉네임", example = "newNickname")
         private String nickname;
