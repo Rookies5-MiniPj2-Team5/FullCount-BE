@@ -28,7 +28,7 @@ public class TransferService {
 
     /** 양도 요청 + 채팅방 자동 생성 */
     @Transactional
-    public TransferDto.Response requestTransfer(Long postId, Long buyerId) {
+    public TransferDto.TransferResponse requestTransfer(Long postId, Long buyerId) {
         // author fetch join으로 N+1 방지
         Post post = postRepository.findByIdWithAuthor(postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
@@ -58,12 +58,12 @@ public class TransferService {
             chatRoomRepository.save(ChatRoomMapper.toEntity(post, ChatRoomType.ONE_ON_ONE));
         }
 
-        return TransferDto.Response.from(transfer);
+        return TransferMapper.toTransferResponse(transfer);
     }
 
     /** 에스크로 결제 완료 (잔액 차감) */
     @Transactional
-    public TransferDto.Response payEscrow(Long transferId, Long buyerId) {
+    public TransferDto.TransferResponse payEscrow(Long transferId, Long buyerId) {
         Transfer transfer = getTransfer(transferId);
         Member buyer = memberRepository.findById(buyerId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
@@ -76,24 +76,24 @@ public class TransferService {
         buyer.deduct(transfer.getPrice());
 
         transfer.payEscrow(buyer);
-        return TransferDto.Response.from(transfer);
+        return TransferMapper.toTransferResponse(transfer);
     }
 
     /** 티켓 전달 완료 (양도자) */
     @Transactional
-    public TransferDto.Response markTicketSent(Long transferId, Long sellerId) {
+    public TransferDto.TransferResponse markTicketSent(Long transferId, Long sellerId) {
         Transfer transfer = getTransfer(transferId);
 
         if (!transfer.getSeller().getId().equals(sellerId)) {
             throw new BusinessException(ErrorCode.ACCESS_DENIED);
         }
         transfer.markTicketSent();
-        return TransferDto.Response.from(transfer);
+        return TransferMapper.toTransferResponse(transfer);
     }
 
     /** 인수 확정 (양수자) → 판매자에게 대금 지급 */
     @Transactional
-    public TransferDto.Response confirmTransfer(Long transferId, Long buyerId) {
+    public TransferDto.TransferResponse confirmTransfer(Long transferId, Long buyerId) {
         Transfer transfer = getTransfer(transferId);
 
         if (!transfer.getBuyer().getId().equals(buyerId)) {
@@ -105,12 +105,12 @@ public class TransferService {
 
         transfer.confirmTransfer();
         transfer.getPost().close();
-        return TransferDto.Response.from(transfer);
+        return TransferMapper.toTransferResponse(transfer);
     }
 
     /** 거래 취소 (에스크로 결제 이후라면 구매자에게 환불) */
     @Transactional
-    public TransferDto.Response cancelTransfer(Long transferId, Long memberId) {
+    public TransferDto.TransferResponse cancelTransfer(Long transferId, Long memberId) {
         Transfer transfer = getTransfer(transferId);
         boolean isSeller = transfer.getSeller().getId().equals(memberId);
         boolean isBuyer = transfer.getBuyer() != null && transfer.getBuyer().getId().equals(memberId);
@@ -126,7 +126,7 @@ public class TransferService {
 
         transfer.cancelTransfer();
         transfer.getPost().close();
-        return TransferDto.Response.from(transfer);
+        return TransferMapper.toTransferResponse(transfer);
     }
 
     private Transfer getTransfer(Long transferId) {
