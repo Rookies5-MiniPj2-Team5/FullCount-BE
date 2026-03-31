@@ -35,23 +35,18 @@ spring:
       on-profile: dev
 
   datasource:
-    url: jdbc:h2:mem:fullcountdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    # 경로 수정: mem -> file
+    # ~/fullcountdb 는 사용자 홈 디렉토리에 fullcountdb.mv.db 파일로 저장하겠다는 의미입니다.
+    url: jdbc:h2:file:~/fullcountdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     driver-class-name: org.h2.Driver
     username: sa
     password:
 
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-
-  sql:
-    init:
-      mode: always
-      data-locations: classpath:data.sql
   jpa:
+    hibernate:
+      # 중요: 매번 새로 만들지 않도록 update로 변경 (첫 실행시에만 create 혹은 update)
+      ddl-auto: update
     defer-datasource-initialization: true
-
 ---
 spring:
   config:
