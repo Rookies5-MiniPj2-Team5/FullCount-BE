@@ -38,11 +38,6 @@ public class AuthController {
     @Operation(summary = "로그아웃")
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.ok().build();
-        }
-        Long memberId = (Long) authentication.getPrincipal();
     public ResponseEntity<Void> logout(@AuthenticationPrincipal Long memberId) {
         authService.logout(memberId);
         return ResponseEntity.ok().build();
