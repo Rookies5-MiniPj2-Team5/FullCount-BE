@@ -19,7 +19,7 @@ public enum ErrorCode {
     DUPLICATE_EMAIL("MEM_002", "이미 사용 중인 이메일입니다.", HttpStatus.CONFLICT),
     DUPLICATE_NICKNAME("MEM_003", "이미 사용 중인 닉네임입니다.", HttpStatus.CONFLICT),
     TEAM_CHANGE_LIMIT("MEM_004", "이번 시즌 팀 변경 횟수를 초과했습니다.", HttpStatus.BAD_REQUEST),
-    ALREADY_IN_TEAM("MEM_005", "이미 선택한 팀과 동일한 팀으로 변경할 수 없습니다.", HttpStatus.BAD_REQUEST), // 추가
+    ALREADY_IN_TEAM("MEM_005", "이미 선택한 팀과 동일한 팀으로 변경할 수 없습니다.", HttpStatus.BAD_REQUEST),
 
     // 게시글
     POST_NOT_FOUND("POST_001", "존재하지 않는 게시글입니다.", HttpStatus.NOT_FOUND),
@@ -45,6 +45,8 @@ public enum ErrorCode {
 
     // 채팅
     CHAT_ROOM_NOT_FOUND("CHAT_001", "존재하지 않는 채팅방입니다.", HttpStatus.NOT_FOUND),
+    CHAT_ROOM_ACCESS_DENIED("CHAT_002", "해당 채팅방에 접근 권한이 없습니다.", HttpStatus.FORBIDDEN),
+    CHAT_MESSAGE_EMPTY("CHAT_003", "메시지 내용은 비어 있을 수 없습니다.", HttpStatus.BAD_REQUEST),
 
     // 서버
     INTERNAL_SERVER_ERROR("SERVER_001", "서버 내부 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),

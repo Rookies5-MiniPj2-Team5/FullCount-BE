@@ -23,5 +23,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns("*")
                 .withSockJS();
+
+        // Postman 테스트용
+        registry.addEndpoint("/ws-test")
+                .setAllowedOriginPatterns("*");
     }
 }

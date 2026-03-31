@@ -2,13 +2,13 @@ package com.fullcount.controller;
 
 import com.fullcount.domain.BoardType;
 import com.fullcount.dto.PostDto;
+import com.fullcount.dto.common.PagedResponse;
 import com.fullcount.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -27,7 +27,7 @@ public class PostController {
 
     @Operation(summary = "게시글 목록 조회 (boardType 필터, 페이징)")
     @GetMapping
-    public ResponseEntity<Page<PostDto.PostResponse>> getPosts(
+    public ResponseEntity<PagedResponse<PostDto.PostResponse>> getPosts(
             @RequestParam(defaultValue = "GENERAL") BoardType boardType,
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(postService.getPosts(boardType, pageable));
@@ -35,7 +35,7 @@ public class PostController {
 
     @Operation(summary = "팀 전용 게시글 목록")
     @GetMapping("/team/{teamId}")
-    public ResponseEntity<Page<PostDto.PostResponse>> getTeamPosts(
+    public ResponseEntity<PagedResponse<PostDto.PostResponse>> getTeamPosts(
             @PathVariable Long teamId,
             @PageableDefault(size = 10) Pageable pageable) {
         return ResponseEntity.ok(postService.getTeamPosts(teamId, pageable));

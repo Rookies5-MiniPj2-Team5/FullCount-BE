@@ -17,7 +17,6 @@ public class GlobalResponseAdvice implements ResponseBodyAdvice<Object> {
 
     @Override
     public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
-        // String 응답은 별도의 처리가 필요할 수 있으나, 보통 DTO나 Void이므로 true 반환
         return true;
     }
 
@@ -39,10 +38,9 @@ public class GlobalResponseAdvice implements ResponseBodyAdvice<Object> {
         wrappedBody.put("success", true);
         
         if (body == null) {
-            // 반환 값이 없는 경우 (Void)
             wrappedBody.put("message", "요청이 성공적으로 처리되었습니다");
         } else {
-            // 반환 데이터가 있는 경우
+            // 이제 Page 객체도 그대로 data 필드에 담깁니다. (명시적 DTO 사용 권장)
             wrappedBody.put("data", body);
         }
         
