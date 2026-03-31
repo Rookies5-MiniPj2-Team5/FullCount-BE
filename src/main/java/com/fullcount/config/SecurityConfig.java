@@ -65,8 +65,8 @@ public class SecurityConfig {
                 )
 
                 .authorizeHttpRequests(auth -> auth
-                        // 공개 접근 허용
-                        .requestMatchers("/api/auth/**").permitAll()
+                        // 공개 접근 허용 (로그인/회원가입/토큰갱신)
+                        .requestMatchers("/api/auth/login", "/api/auth/signup", "/api/auth/refresh").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/teams/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/baseball/**").permitAll()
@@ -75,6 +75,8 @@ public class SecurityConfig {
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/baseball/sync").permitAll() // 테스트를 위해 임시로 누구나 동기화 가능하게 허용
+                        // 로그아웃은 인증된 사용자만 가능
+                        .requestMatchers("/api/auth/logout").authenticated()
                         // 나머지 인증 필요
                         .anyRequest().authenticated()
                 )
