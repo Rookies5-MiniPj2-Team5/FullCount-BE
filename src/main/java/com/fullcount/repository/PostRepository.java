@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Optional;
+
 public interface PostRepository extends JpaRepository<Post, Long> {
 
     /** 게시판 타입별 게시글 목록 (N+1 방지: author, team Fetch Join) */
@@ -26,4 +28,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     Page<Post> searchByKeyword(@Param("boardType") BoardType boardType,
                                @Param("keyword") String keyword,
                                Pageable pageable);
+
+    @Query("SELECT p FROM Post p JOIN FETCH p.author WHERE p.id = :postId")
+    Optional<Post> findByIdWithAuthor(@Param("postId") Long postId);
 }

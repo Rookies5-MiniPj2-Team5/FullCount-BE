@@ -7,11 +7,12 @@ import org.springframework.http.HttpStatus;
 public enum ErrorCode {
 
     // 인증/인가
-    INVALID_CREDENTIALS("AUTH_001", "이메일 또는 비밀번호가 올바르지 않습니다.", HttpStatus.UNAUTHORIZED),
+    UNAUTHORIZED("AUTH_001", "인증이 필요합니다.", HttpStatus.UNAUTHORIZED),
     ACCESS_DENIED("AUTH_002", "접근 권한이 없습니다.", HttpStatus.FORBIDDEN),
-    INVALID_TOKEN("AUTH_003", "유효하지 않은 인증 토큰입니다.", HttpStatus.UNAUTHORIZED),
-    EXPIRED_TOKEN("AUTH_004", "만료된 인증 토큰입니다.", HttpStatus.UNAUTHORIZED),
-    INACTIVE_MEMBER("AUTH_005", "비활성화된 회원입니다.", HttpStatus.FORBIDDEN),
+    INVALID_CREDENTIALS("AUTH_003", "이메일 또는 비밀번호가 올바르지 않습니다.", HttpStatus.UNAUTHORIZED),
+    INVALID_TOKEN("AUTH_004", "유효하지 않은 인증 토큰입니다.", HttpStatus.UNAUTHORIZED),
+    EXPIRED_TOKEN("AUTH_005", "만료된 인증 토큰입니다.", HttpStatus.UNAUTHORIZED),
+    INACTIVE_MEMBER("AUTH_006", "비활성화된 회원입니다.", HttpStatus.FORBIDDEN),
 
     // 회원
     MEMBER_NOT_FOUND("MEM_001", "존재하지 않는 회원입니다.", HttpStatus.NOT_FOUND),
@@ -30,6 +31,13 @@ public enum ErrorCode {
     TRANSFER_INVALID_STATUS("TRF_002", "현재 거래 상태에서 해당 작업을 수행할 수 없습니다.", HttpStatus.BAD_REQUEST),
     TRANSFER_ALREADY_EXISTS("TRF_003", "이미 거래가 진행 중인 게시글입니다.", HttpStatus.CONFLICT),
     TRANSFER_SELF_NOT_ALLOWED("TRF_004", "자신의 게시글에는 양도 요청할 수 없습니다.", HttpStatus.BAD_REQUEST),
+
+    TRANSFER_PAYMENT_NOT_ALLOWED("TRF_005", "결제는 REQUESTED 상태에서만 가능합니다.", HttpStatus.BAD_REQUEST),
+    TRANSFER_TICKET_SEND_NOT_ALLOWED("TRF_006", "결제 완료 후에만 티켓 전달 처리가 가능합니다.", HttpStatus.BAD_REQUEST),
+    TRANSFER_CONFIRM_NOT_ALLOWED("TRF_007", "인수 확정은 결제 완료 이후 단계에서만 가능합니다.", HttpStatus.BAD_REQUEST),
+    TRANSFER_CANCEL_NOT_ALLOWED("TRF_008", "이미 완료된 거래는 취소할 수 없습니다.", HttpStatus.BAD_REQUEST),
+
+    INSUFFICIENT_BALANCE("PAY_001", "잔액이 부족합니다.", HttpStatus.BAD_REQUEST),
 
     // 팀
     TEAM_NOT_FOUND("TEAM_001", "존재하지 않는 팀입니다.", HttpStatus.NOT_FOUND),
