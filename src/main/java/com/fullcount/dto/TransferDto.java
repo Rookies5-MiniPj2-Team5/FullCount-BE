@@ -10,7 +10,7 @@ public class TransferDto {
 
     @Getter
     @Builder
-    public static class Response {
+    public static class TransferResponse {
         private Long id;
         private Long postId;
         private String postTitle;
@@ -20,19 +20,5 @@ public class TransferDto {
         private String status;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
-
-        public static Response from(Transfer t) {
-            return Response.builder()
-                    .id(t.getId())
-                    .postId(t.getPost().getId())
-                    .postTitle(t.getPost().getTitle())
-                    .sellerNickname(t.getSeller().getNickname())
-                    .buyerNickname(t.getBuyer() != null ? t.getBuyer().getNickname() : null)
-                    .price(t.getPrice())
-                    .status(t.getStatus().name())
-                    .createdAt(t.getCreatedAt())
-                    .updatedAt(t.getUpdatedAt())
-                    .build();
-        }
     }
 }

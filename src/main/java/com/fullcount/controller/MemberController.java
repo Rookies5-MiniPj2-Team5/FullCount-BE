@@ -21,15 +21,15 @@ public class MemberController {
 
     @Operation(summary = "내 정보 조회")
     @GetMapping("/me")
-    public ResponseEntity<MemberDto.Response> getMyInfo(@AuthenticationPrincipal Long memberId) {
+    public ResponseEntity<MemberDto.MemberResponse> getMyInfo(@AuthenticationPrincipal Long memberId) {
         return ResponseEntity.ok(memberService.getMyInfo(memberId));
     }
 
     @Operation(summary = "닉네임 수정")
     @PutMapping("/me")
-    public ResponseEntity<MemberDto.Response> updateNickname(
+    public ResponseEntity<MemberDto.UpdateNickNameResponse> updateNickname(
             @AuthenticationPrincipal Long memberId,
-            @RequestBody MemberDto.UpdateRequest req) {
+            @RequestBody MemberDto.UpdateNickNameRequest req) {
         return ResponseEntity.ok(memberService.updateNickname(memberId, req));
     }
 

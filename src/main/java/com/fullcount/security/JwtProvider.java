@@ -5,6 +5,7 @@ import com.fullcount.exception.BusinessException;
 import com.fullcount.exception.ErrorCode;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SecurityException;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -64,7 +65,7 @@ public class JwtProvider {
         } catch (ExpiredJwtException e) {
             log.warn("만료된 JWT 토큰입니다. (사용자 ID: {})", e.getClaims().getSubject());
             throw new BusinessException(ErrorCode.EXPIRED_TOKEN);
-        } catch (SignatureException e) {
+        } catch (SecurityException e) {
             log.error("잘못된 JWT 서명입니다! (위조 시도 가능성)");
             throw new BusinessException(ErrorCode.INVALID_TOKEN);
         } catch (MalformedJwtException e) {
