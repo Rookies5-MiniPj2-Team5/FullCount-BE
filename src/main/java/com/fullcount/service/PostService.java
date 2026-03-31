@@ -2,6 +2,7 @@ package com.fullcount.service;
 
 import com.fullcount.domain.*;
 import com.fullcount.dto.PostDto;
+import com.fullcount.dto.common.PagedResponse;
 import com.fullcount.exception.BusinessException;
 import com.fullcount.exception.ErrorCode;
 import com.fullcount.mapper.PostMapper;
@@ -20,21 +21,19 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
-    private final TeamRepository teamRepository; // 추가
+    private final TeamRepository teamRepository;
 
     @Transactional
     public PostDto.PostResponse createPost(Long authorId, PostDto.CreatePostRequest req) {
         Member author = memberRepository.findByIdWithTeam(authorId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
-        // TRANSFER 가격 정가 초과 검증 (필요 시 도메인 내부로 이동 가능)
         if (req.getBoardType() == BoardType.TRANSFER
                 && req.getTicketPrice() != null
-                && req.getTicketPrice() < 0) { // 예시 로직: 실제 비즈니스 규칙에 맞게 수정
+                && req.getTicketPrice() < 0) {
             throw new BusinessException(ErrorCode.TICKET_PRICE_EXCEEDED);
         }
 
-        // Team 엔티티 참조 조회 (DB 조회를 피하려면 getReferenceById 사용)
         Team homeTeam = req.getHomeTeamId() != null
                 ? teamRepository.findById(req.getHomeTeamId()).orElse(null) : null;
         Team awayTeam = req.getAwayTeamId() != null
@@ -46,20 +45,21 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public Page<PostDto.PostResponse> getPosts(BoardType boardType, Pageable pageable) {
-        return postRepository.findByBoardType(boardType, pageable)
+    public PagedResponse<PostDto.PostResponse> getPosts(BoardType boardType, Pageable pageable) {
+        Page<PostDto.PostResponse> page = postRepository.findByBoardType(boardType, pageable)
                 .map(PostMapper::toResponse);
+        return PagedResponse.of(page);
     }
 
     @Transactional(readOnly = true)
-    public Page<PostDto.PostResponse> getTeamPosts(Long teamId, Pageable pageable) {
-        return postRepository.findTeamOnlyByTeamId(teamId, pageable)
+    public PagedResponse<PostDto.PostResponse> getTeamPosts(Long teamId, Pageable pageable) {
+        Page<PostDto.PostResponse> page = postRepository.findTeamOnlyByTeamId(teamId, pageable)
                 .map(PostMapper::toResponse);
+        return PagedResponse.of(page);
     }
 
     @Transactional
     public PostDto.PostResponse getPost(Long postId) {
-        // 단건 조회 시에도 Fetch Join 메서드 사용 권장
         Post post = postRepository.findByIdWithAll(postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
 

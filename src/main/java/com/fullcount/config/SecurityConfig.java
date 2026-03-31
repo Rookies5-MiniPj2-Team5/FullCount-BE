@@ -70,9 +70,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/teams/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/baseball/**").permitAll()
-                        // Swagger, H2 콘솔
+                        // Swagger, H2 콘솔, WebSocket
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
+                        .requestMatchers("/ws/**", "/ws-test/**", "/ws", "/ws-test").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/baseball/sync").permitAll() // 테스트를 위해 임시로 누구나 동기화 가능하게 허용
                         // 로그아웃은 인증된 사용자만 가능
@@ -104,20 +105,15 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // 공개 접근 허용
                         .requestMatchers("/", "/login", "/signup", "/css/**", "/js/**", "/images/**", "/error").permitAll()
-                        // Swagger, H2 콘솔
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
-                        // 관리자 전용
+                        .requestMatchers("/ws", "/ws/**", "/ws-test", "/ws-test/**").permitAll()
+                        .requestMatchers("/chat-test.html").permitAll() // 채팅 테스트
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        // 나머지 인증 필요
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
-//                        .loginPage("/login")
-//                        .usernameParameter("username")
-//                        .passwordParameter("password")
                         .defaultSuccessUrl("/", true)
                         .permitAll()
                 )
@@ -126,7 +122,6 @@ public class SecurityConfig {
                         .logoutSuccessUrl("/login")
                         .permitAll()
                 )
-                // H2 콘솔 iframe 허용
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()));
 
         return http.build();

@@ -23,5 +23,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/ws")
                 .setAllowedOrigins("http://localhost:5173") // 프론트엔드 주소를 명시
                 .withSockJS();
+
+        // Postman 테스트용
+        registry.addEndpoint("/ws-test")
+                .setAllowedOriginPatterns("*");
     }
 }
