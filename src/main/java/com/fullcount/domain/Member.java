@@ -82,9 +82,16 @@ public class Member {
 
     /** 응원 팀 변경 (시즌당 1회 제한) */
     public void changeTeam(Team newTeam) {
+        // 1. 이미 이번 시즌에 변경했는지 체크
         if (this.teamChangedThisSeason) {
             throw new BusinessException(ErrorCode.TEAM_CHANGE_LIMIT);
         }
+
+        // 2. 현재 팀과 같은 팀으로 변경하려는지 체크
+        if (this.team != null && this.team.getId().equals(newTeam.getId())) {
+            throw new BusinessException(ErrorCode.ALREADY_IN_TEAM);
+        }
+
         this.team = newTeam;
         this.teamChangedThisSeason = true;
     }

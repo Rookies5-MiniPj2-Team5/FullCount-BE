@@ -27,7 +27,7 @@ public class PostController {
 
     @Operation(summary = "게시글 목록 조회 (boardType 필터, 페이징)")
     @GetMapping
-    public ResponseEntity<Page<PostDto.Response>> getPosts(
+    public ResponseEntity<Page<PostDto.PostResponse>> getPosts(
             @RequestParam(defaultValue = "GENERAL") BoardType boardType,
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(postService.getPosts(boardType, pageable));
@@ -35,7 +35,7 @@ public class PostController {
 
     @Operation(summary = "팀 전용 게시글 목록")
     @GetMapping("/team/{teamId}")
-    public ResponseEntity<Page<PostDto.Response>> getTeamPosts(
+    public ResponseEntity<Page<PostDto.PostResponse>> getTeamPosts(
             @PathVariable Long teamId,
             @PageableDefault(size = 10) Pageable pageable) {
         return ResponseEntity.ok(postService.getTeamPosts(teamId, pageable));
@@ -43,26 +43,26 @@ public class PostController {
 
     @Operation(summary = "게시글 상세 조회")
     @GetMapping("/{id}")
-    public ResponseEntity<PostDto.Response> getPost(@PathVariable Long id) {
+    public ResponseEntity<PostDto.PostResponse> getPost(@PathVariable Long id) {
         return ResponseEntity.ok(postService.getPost(id));
     }
 
     @Operation(summary = "게시글 작성")
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping
-    public ResponseEntity<PostDto.Response> createPost(
+    public ResponseEntity<PostDto.PostResponse> createPost(
             @AuthenticationPrincipal Long memberId,
-            @Valid @RequestBody PostDto.CreateRequest req) {
+            @Valid @RequestBody PostDto.CreatePostRequest req) {
         return ResponseEntity.status(HttpStatus.CREATED).body(postService.createPost(memberId, req));
     }
 
     @Operation(summary = "게시글 수정 (OPEN 상태만 가능)")
     @SecurityRequirement(name = "bearerAuth")
     @PutMapping("/{id}")
-    public ResponseEntity<PostDto.Response> updatePost(
+    public ResponseEntity<PostDto.PostResponse> updatePost(
             @PathVariable Long id,
             @AuthenticationPrincipal Long memberId,
-            @Valid @RequestBody PostDto.UpdateRequest req) {
+            @Valid @RequestBody PostDto.UpdatePostRequest req) {
         return ResponseEntity.ok(postService.updatePost(id, memberId, req));
     }
 

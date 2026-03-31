@@ -5,6 +5,7 @@ import com.fullcount.domain.Team;
 import com.fullcount.dto.MemberDto;
 import com.fullcount.exception.BusinessException;
 import com.fullcount.exception.ErrorCode;
+import com.fullcount.mapper.MemberMapper; // 매퍼 임포트
 import com.fullcount.repository.MemberRepository;
 import com.fullcount.repository.TeamRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,15 +20,17 @@ public class MemberService {
     private final TeamRepository teamRepository;
 
     @Transactional(readOnly = true)
-    public MemberDto.Response getMyInfo(Long memberId) {
+    public MemberDto.MemberResponse getMyInfo(Long memberId) {
         Member member = memberRepository.findByIdWithTeam(memberId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
-        return MemberDto.Response.from(member);
+
+        return MemberMapper.toMemberResponse(member);
     }
 
     @Transactional
-    public MemberDto.Response updateNickname(Long memberId, MemberDto.UpdateRequest req) {
-        Member member = memberRepository.findById(memberId)
+    public MemberDto.UpdateNickNameResponse updateNickname(Long memberId, MemberDto.UpdateNickNameRequest req) {
+        // N+1 예방을 위해 findByIdWithTeam 사용 (DTO 변환 시 Team 정보 필요하므로)
+        Member member = memberRepository.findByIdWithTeam(memberId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
         if (req.getNickname() != null && !req.getNickname().equals(member.getNickname())) {
@@ -36,7 +39,8 @@ public class MemberService {
             }
             member.updateNickname(req.getNickname());
         }
-        return MemberDto.Response.from(member);
+
+        return MemberMapper.toUpdateNickNameResponse(member.getNickname());
     }
 
     @Transactional
@@ -47,10 +51,6 @@ public class MemberService {
         Team newTeam = teamRepository.findById(req.getTeamId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.TEAM_NOT_FOUND));
 
-        try {
-            member.changeTeam(newTeam);
-        } catch (IllegalStateException e) {
-            throw new BusinessException(ErrorCode.TEAM_CHANGE_LIMIT);
-        }
+        member.changeTeam(newTeam);
     }
 }

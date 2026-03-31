@@ -19,6 +19,7 @@ public enum ErrorCode {
     DUPLICATE_EMAIL("MEM_002", "이미 사용 중인 이메일입니다.", HttpStatus.CONFLICT),
     DUPLICATE_NICKNAME("MEM_003", "이미 사용 중인 닉네임입니다.", HttpStatus.CONFLICT),
     TEAM_CHANGE_LIMIT("MEM_004", "이번 시즌 팀 변경 횟수를 초과했습니다.", HttpStatus.BAD_REQUEST),
+    ALREADY_IN_TEAM("MEM_005", "이미 선택한 팀과 동일한 팀으로 변경할 수 없습니다.", HttpStatus.BAD_REQUEST), // 추가
 
     // 게시글
     POST_NOT_FOUND("POST_001", "존재하지 않는 게시글입니다.", HttpStatus.NOT_FOUND),

@@ -15,7 +15,7 @@ public class PostDto {
     @Getter
     @NoArgsConstructor
     @Schema(description = "게시글 작성 요청")
-    public static class CreateRequest {
+    public static class CreatePostRequest {
         @Schema(description = "제목", example = "잠실 직관 가실 분 구합니다")
         @NotBlank(message = "제목은 필수입니다.")
         @Size(max = 100, message = "제목은 100자 이내로 작성해주세요.")
@@ -48,7 +48,7 @@ public class PostDto {
     @Getter
     @NoArgsConstructor
     @Schema(description = "게시글 수정 요청")
-    public static class UpdateRequest {
+    public static class UpdatePostRequest {
         @Schema(description = "제목", example = "잠실 경기 동행 모집 수정합니다")
         @NotBlank
         @Size(max = 100)
@@ -61,7 +61,7 @@ public class PostDto {
 
     @Getter
     @Builder
-    public static class Response {
+    public static class PostResponse {
         private Long id;
         private String authorNickname;
         private String teamName;
@@ -78,26 +78,5 @@ public class PostDto {
         private String status;
         private Integer viewCount;
         private LocalDateTime createdAt;
-
-        public static Response from(Post post) {
-            return Response.builder()
-                    .id(post.getId())
-                    .authorNickname(post.getAuthor().getNickname())
-                    .teamName(post.getTeam() != null ? post.getTeam().getName() : null)
-                    .boardType(post.getBoardType().name())
-                    .title(post.getTitle())
-                    .content(post.getContent())
-                    .matchDate(post.getMatchDate())
-                    .homeTeamName(post.getHomeTeam() != null ? post.getHomeTeam().getName() : null)
-                    .homeTeamId(post.getHomeTeam() != null ? post.getHomeTeam().getId().toString() : null)
-                    .awayTeamName(post.getAwayTeam() != null ? post.getAwayTeam().getName() : null)
-                    .awayTeamId(post.getAwayTeam() != null ? post.getAwayTeam().getId().toString() : null)
-                    .ticketPrice(post.getTicketPrice())
-                    .maxParticipants(post.getMaxParticipants())
-                    .status(post.getStatus().name())
-                    .viewCount(post.getViewCount())
-                    .createdAt(post.getCreatedAt())
-                    .build();
-        }
     }
 }
