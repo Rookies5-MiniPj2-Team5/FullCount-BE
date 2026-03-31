@@ -38,6 +38,9 @@ public class AuthController {
     @Operation(summary = "로그아웃")
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.ok().build();
+        }
         Long memberId = (Long) authentication.getPrincipal();
         authService.logout(memberId);
         return ResponseEntity.ok().build();
