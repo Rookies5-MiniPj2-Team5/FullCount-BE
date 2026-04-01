@@ -23,31 +23,45 @@
 - **Framework**: React 18 (Vite)
 - **Styling**: Vanilla CSS (Custom Mobile-First Design)
 
+## 🔗 Repository
+- **Backend**: [FullCount-BE](https://github.com/Rookies5-MiniPj2-Team5/FullCount-BE)
+- **Frontend**: [FullCount-FE](https://github.com/Rookies5-MiniPj2-Team5/FullCount-FE)
+
 ---
 
 ## 🏃 실행 방법
 
-### Backend 기동
+### 1. Backend (Spring Boot)
+백엔드 서버를 기동하기 위한 단계입니다.
 ```powershell
-cd c:\miniproject_2
+# 레포지토리 클론
+git clone https://github.com/Rookies5-MiniPj2-Team5/FullCount-BE.git
+cd FullCount-BE
+
+# 애플리케이션 실행 (Windows)
 .\gradlew.bat bootRun
 ```
-- **API Swagger**: http://localhost:8080/swagger-ui.html
-- **H2 Console**: http://localhost:8080/h2-console
-- **Admin**: http://localhost:8080/admin/dashboard
+- **API Swagger**: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
+- **H2 Console**: [http://localhost:8080/h2-console](http://localhost:8080/h2-console) (JDBC URL: `jdbc:h2:mem:fullcountdb`)
+- **Admin Page**: [http://localhost:8080/admin/dashboard](http://localhost:8080/admin/dashboard) (ID/PW: `admin`/`admin`) (아직 구현 X)
 
-### Frontend 기동
+### 2. Frontend (React)
+프론트엔드 개발 서버를 기동하기 위한 단계입니다.
 ```powershell
-cd c:\miniproject_2\frontend
+# 레포지토리 클론
+git clone https://github.com/Rookies5-MiniPj2-Team5/FullCount-FE.git
+cd FullCount-FE
+
+# 의존성 설치 및 실행
 npm install
 npm run dev
 ```
-- **URL**: http://localhost:5173
+- **URL**: [http://localhost:5173](http://localhost:5173)
 
 ---
 
-## 📁 프로젝트 구조
+## 📁 프로젝트 구조 (Backend 기준)
 - `src/main/java/com/fullcount/` : 백엔드 도메인 및 비즈니스 로직
 - `src/main/resources/templates/` : 관리자 페이지 Thymeleaf 템플릿
-- `frontend/` : React 프론트엔드 소스
+- `3_REST API 설계서.md` : 상세 API 명세서
 - `PRD_풀카운트.md` : 프로젝트 기획 및 상세 요구사항 문서
