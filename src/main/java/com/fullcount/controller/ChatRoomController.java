@@ -39,7 +39,7 @@ public class ChatRoomController {
         return ResponseEntity.ok(chatRoomService.getMyChatRooms(memberId, pageable));
     }
 
-    @Operation(summary = "그룹 채팅방 생성", description = "동행/크루 모집 게시글에 대한 그룹 채팅방 생성 (티켓 양도 채팅방 생성은 양도 요청 API 실행)")
+    @Operation(summary = "그룹 채팅방 생성 (티켓 양도 채팅방 생성은 양도 요청 API 실행)", description = "동행/크루 모집 게시글에 대한 그룹 채팅방 생성 (티켓 양도 채팅방 생성은 양도 요청 API 실행)")
     @PostMapping
     public ResponseEntity<ChatDTO.ChatRoomResponse> createGroupChatRoom(
             @AuthenticationPrincipal Long memberId,

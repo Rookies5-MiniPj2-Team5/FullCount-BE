@@ -420,7 +420,7 @@ Authorization: Bearer {JWT_TOKEN}
 ```json
 {
   "success": true,
-  "data": { "transferId": 42, "chatRoomId": 101, "status": "REQUESTED" }
+  "data": { "transferId": 42, "chatRoomId": 101, "sellerId":  1, "buyerId":  2}
 }
 ```
 **Error 422 (TRF_004)**: 자신의 게시글에 양도 요청 시
