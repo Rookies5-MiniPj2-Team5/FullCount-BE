@@ -145,11 +145,33 @@ public class TransferService {
             throw new BusinessException(ErrorCode.ACCESS_DENIED);
         }
 
-        // 에스크로 결제 이후 취소라면 구매자에게 환불
-        if (transfer.getStatus() == TransferStatus.PAYMENT_COMPLETED) {
-            transfer.getBuyer().charge(transfer.getPrice());
-            log.info("에스크로 환불 처리 - transferId={}, buyerId={}, price={}", transferId, transfer.getBuyer().getId(), transfer.getPrice());
+        // 이미 종료된 거래는 취소 불가
+        if (transfer.getStatus() == TransferStatus.COMPLETED ||
+                transfer.getStatus() == TransferStatus.CANCELLED) {
+            log.warn("거래 취소 불가 - 이미 종료된 거래, transferId={}, status={}", transferId, transfer.getStatus());
+            throw new BusinessException(ErrorCode.TRANSFER_INVALID_STATUS);
         }
+
+        // 티켓 전달 완료 이후에는 구매자만 취소 가능
+        if (transfer.getStatus() == TransferStatus.TICKET_SENT && isSeller) {
+            log.warn("거래 취소 불가 - 티켓 전달 완료 이후 판매자 취소 불가, transferId={}, sellerId={}", transferId, memberId);
+            throw new BusinessException(ErrorCode.TRANSFER_INVALID_STATUS);
+        }
+
+        // 에스크로 결제 이후 취소라면 구매자에게 환불
+        if (transfer.getStatus() == TransferStatus.PAYMENT_COMPLETED ||
+                transfer.getStatus() == TransferStatus.TICKET_SENT) {
+            transfer.getBuyer().charge(transfer.getPrice());
+            log.info("에스크로 환불 처리 - transferId={}, buyerId={}, price={}",
+                    transferId, transfer.getBuyer().getId(), transfer.getPrice());
+        }
+
+        // 취소 신청자 매너 온도 -0.1
+        Member canceller = isSeller ? transfer.getSeller() : transfer.getBuyer();
+        double before = canceller.getMannerTemperature();
+        canceller.updateMannerTemperature(-0.1);
+        log.info("매너 온도 하락 - memberId={}, {} → {}",
+                memberId, before, canceller.getMannerTemperature());
 
         transfer.cancelTransfer();
         transfer.getPost().close();
