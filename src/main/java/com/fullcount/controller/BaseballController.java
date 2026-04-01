@@ -30,4 +30,16 @@ public class BaseballController {
         baseballService.syncSeasonSchedule(year);
         return ResponseEntity.ok(year + "년도 데이터 DB 동기화가 성공적으로 완료되었습니다.");
     }
+
+    // 3. 오늘의 라이브 경기 현황 (네이버 JSON API를 백엔드에서 프록시)
+    @GetMapping(value = "/live", produces = "application/json;charset=UTF-8")
+    public ResponseEntity<String> getLiveGames(@RequestParam String date) {
+        return ResponseEntity.ok(baseballService.getLiveGames(date));
+    }
+
+    // 4. KBO 순위 현황 (KBO 공식 HTML 파싱)
+    @GetMapping("/standings")
+    public ResponseEntity<java.util.List<java.util.Map<String, String>>> getStandings() {
+        return ResponseEntity.ok(baseballService.getKboStandings());
+    }
 }

@@ -13,18 +13,21 @@ import java.util.Optional;
 public interface PostRepository extends JpaRepository<Post, Long> {
 
     /** 게시판 타입별 게시글 목록 (N+1 방지: author, team Fetch Join) */
-    @Query("SELECT p FROM Post p JOIN FETCH p.author a LEFT JOIN FETCH a.team " +
-           "WHERE p.boardType = :boardType ORDER BY p.createdAt DESC")
+    @Query(value = "SELECT p FROM Post p JOIN FETCH p.author a LEFT JOIN FETCH a.team " +
+           "WHERE p.boardType = :boardType",
+           countQuery = "SELECT count(p) FROM Post p WHERE p.boardType = :boardType")
     Page<Post> findByBoardType(@Param("boardType") BoardType boardType, Pageable pageable);
 
     /** 팀 전용 게시판 - 팀 ID 필터 */
-    @Query("SELECT p FROM Post p JOIN FETCH p.author a JOIN FETCH a.team t " +
-           "WHERE p.boardType = 'TEAM_ONLY' AND t.id = :teamId ORDER BY p.createdAt DESC")
+    @Query(value = "SELECT p FROM Post p JOIN FETCH p.author a JOIN FETCH a.team t " +
+           "WHERE p.boardType = 'TEAM_ONLY' AND t.id = :teamId",
+           countQuery = "SELECT count(p) FROM Post p JOIN p.author a JOIN a.team t WHERE p.boardType = 'TEAM_ONLY' AND t.id = :teamId")
     Page<Post> findTeamOnlyByTeamId(@Param("teamId") Long teamId, Pageable pageable);
 
     /** 제목 + 내용 검색 */
-    @Query("SELECT p FROM Post p JOIN FETCH p.author " +
-           "WHERE p.boardType = :boardType AND (p.title LIKE %:keyword% OR p.content LIKE %:keyword%)")
+    @Query(value = "SELECT p FROM Post p JOIN FETCH p.author " +
+           "WHERE p.boardType = :boardType AND (p.title LIKE %:keyword% OR p.content LIKE %:keyword%)",
+           countQuery = "SELECT count(p) FROM Post p WHERE p.boardType = :boardType AND (p.title LIKE %:keyword% OR p.content LIKE %:keyword%)")
     Page<Post> searchByKeyword(@Param("boardType") BoardType boardType,
                                @Param("keyword") String keyword,
                                Pageable pageable);
