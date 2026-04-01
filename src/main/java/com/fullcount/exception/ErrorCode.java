@@ -26,6 +26,9 @@ public enum ErrorCode {
     POST_NOT_EDITABLE("POST_002", "예약 중이거나 마감된 게시글은 수정/삭제할 수 없습니다.", HttpStatus.BAD_REQUEST),
     TEAM_BOARD_ACCESS_DENIED("POST_003", "해당 팀 전용 게시판에 접근 권한이 없습니다.", HttpStatus.FORBIDDEN),
     TICKET_PRICE_EXCEEDED("POST_004", "양도 가격은 정가를 초과할 수 없습니다.", HttpStatus.BAD_REQUEST),
+    INVALID_BOARD_TYPE("POST_005", "해당 게시판 타입에 유효하지 않은 요청입니다.", HttpStatus.BAD_REQUEST),
+    CREW_FULL("POST_006", "모집 인원이 가득 찼습니다.", HttpStatus.BAD_REQUEST),
+    ALREADY_PARTICIPATING("POST_007", "이미 참여 중인 크루입니다.", HttpStatus.BAD_REQUEST),
 
     // 양도 거래
     TRANSFER_NOT_FOUND("TRF_001", "존재하지 않는 거래입니다.", HttpStatus.NOT_FOUND),

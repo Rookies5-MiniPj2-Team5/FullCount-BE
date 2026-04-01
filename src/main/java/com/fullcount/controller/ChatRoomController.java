@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -34,11 +35,11 @@ public class ChatRoomController {
     @GetMapping
     public ResponseEntity<PagedResponse<ChatDTO.ChatRoomResponse>> getMyChatRooms(
             @AuthenticationPrincipal Long memberId,
-            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+            @ParameterObject @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(chatRoomService.getMyChatRooms(memberId, pageable));
     }
 
-    @Operation(summary = "그룹 채팅방 생성", description = "동행/크루 모집 게시글에 대한 그룹 채팅방 생성")
+    @Operation(summary = "그룹 채팅방 생성", description = "동행/크루 모집 게시글에 대한 그룹 채팅방 생성 (티켓 양도 채팅방 생성은 양도 요청 API 실행)")
     @PostMapping
     public ResponseEntity<ChatDTO.ChatRoomResponse> createGroupChatRoom(
             @AuthenticationPrincipal Long memberId,

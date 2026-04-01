@@ -1,82 +1,190 @@
 package com.fullcount.dto;
 
-import com.fullcount.domain.*;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fullcount.domain.BoardType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class PostDto {
 
+    // ==========================================
+    // [REQUEST] 게시글 생성 요청 DTO
+    // ==========================================
+
     @Getter
     @NoArgsConstructor
-    @Schema(description = "게시글 작성 요청")
-    public static class CreatePostRequest {
-        @Schema(description = "제목", example = "잠실 직관 가실 분 구합니다")
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "boardType", visible = true)
+    @JsonSubTypes({
+            @JsonSubTypes.Type(value = CreateMateRequest.class, name = "MATE"),
+            @JsonSubTypes.Type(value = CreateCrewRequest.class, name = "CREW"),
+            @JsonSubTypes.Type(value = CreateTransferRequest.class, name = "TRANSFER")
+    })
+    public abstract static class CreatePostRequest {
         @NotBlank(message = "제목은 필수입니다.")
         @Size(max = 100, message = "제목은 100자 이내로 작성해주세요.")
         private String title;
 
-        @Schema(description = "내용", example = "3월 30일 잠실 경기 같이 가실 분!")
         @NotBlank(message = "내용은 필수입니다.")
         private String content;
 
-        @Schema(description = "게시판 타입 (TRANSFER, MEETUP, TEAM_ONLY, GENERAL)", example = "TRANSFER")
         @NotNull(message = "게시판 타입을 선택해주세요.")
         private BoardType boardType;
-
-        @Schema(description = "경기 날짜", example = "2026-03-30")
-        private LocalDate matchDate;
-
-        @Schema(description = "홈 팀 ID", example = "1")
-        private Long homeTeamId;
-
-        @Schema(description = "어웨이 팀 ID", example = "2")
-        private Long awayTeamId;
-
-        @Schema(description = "티켓 가격", example = "15000")
-        private Integer ticketPrice;
-
-        @Schema(description = "최대 참여 인원", example = "2")
-        private Integer maxParticipants;
     }
 
+    /** 1. 직관 메이트 등록 요청 */
     @Getter
     @NoArgsConstructor
-    @Schema(description = "게시글 수정 요청")
-    public static class UpdatePostRequest {
-        @Schema(description = "제목", example = "잠실 경기 동행 모집 수정합니다")
-        @NotBlank
-        @Size(max = 100)
-        private String title;
+    @AllArgsConstructor
+    @Builder
+    public static class CreateMateRequest extends CreatePostRequest {
+        @NotNull(message = "경기 날짜는 필수입니다.")
+        @FutureOrPresent(message = "경기 날짜는 과거일 수 없습니다.")
+        private LocalDate matchDate;
 
-        @Schema(description = "내용", example = "개인 사정으로 시간을 변경합니다. 오후 6시에 뵈어요.")
-        @NotBlank
+        @NotNull(message = "홈 팀 ID는 필수입니다.")
+        private Long homeTeamId;
+
+        @NotNull(message = "어웨이 팀 ID는 필수입니다.")
+        private Long awayTeamId;
+    }
+
+    /** 2. 직관 크루 등록 요청 */
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class CreateCrewRequest extends CreatePostRequest {
+        @NotNull(message = "응원팀 설정은 필수입니다.")
+        private Long supportTeamId;
+
+        @NotNull(message = "모집 인원을 설정해주세요.")
+        @Min(value = 2, message = "최소 2명 이상 모집해야 합니다.")
+        @Max(value = 50, message = "최대 50명까지 모집 가능합니다.")
+        private Integer maxParticipants;
+
+        @Builder.Default
+        private Boolean isPublic = true;
+
+        @Size(max = 5, message = "태그는 최대 5개까지만 등록 가능합니다.")
+        private List<String> tags;
+
+        @NotBlank(message = "경기장 정보는 필수입니다.")
+        private String stadium;
+
+        @NotNull(message = "경기 날짜는 필수입니다.")
+        @FutureOrPresent(message = "경기 날짜는 과거일 수 없습니다.")
+        private LocalDate matchDate;
+
+        @Pattern(regexp = "^([01]?[0-9]|2[0-3]):[0-5][0-9]$", message = "시간 형식(HH:mm)이 올바르지 않습니다.")
+        private String matchTime;
+
+        private String seatArea;
+    }
+
+    /** 3. 티켓 양도 등록 요청 */
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class CreateTransferRequest extends CreatePostRequest {
+        @NotNull(message = "경기 날짜는 필수입니다.")
+        private LocalDate matchDate;
+
+        @NotNull(message = "홈 팀 ID는 필수입니다.")
+        private Long homeTeamId;
+
+        @NotNull(message = "어웨이 팀 ID는 필수입니다.")
+        private Long awayTeamId;
+
+        private String seatArea;
+
+        @NotNull(message = "티켓 가격을 입력해주세요.")
+        @PositiveOrZero(message = "가격은 0원 이상이어야 합니다.")
+        private Integer ticketPrice;
+    }
+
+    /** 게시글 수정 요청 */
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class UpdatePostRequest {
+        @NotBlank(message = "제목은 필수입니다.")
+        private String title;
+        @NotBlank(message = "내용은 필수입니다.")
         private String content;
     }
 
+    // ==========================================
+    // [RESPONSE] 게시글 응답 DTO
+    // ==========================================
+
     @Getter
-    @Builder
-    public static class PostResponse {
+    @SuperBuilder
+    @NoArgsConstructor
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "boardType", visible = true)
+    @JsonSubTypes({
+            @JsonSubTypes.Type(value = MateResponse.class, name = "MATE"),
+            @JsonSubTypes.Type(value = CrewResponse.class, name = "CREW"),
+            @JsonSubTypes.Type(value = TransferResponse.class, name = "TRANSFER")
+    })
+    public abstract static class PostResponse {
         private Long id;
         private String authorNickname;
-        private String teamName;
-        private String boardType;
         private String title;
         private String content;
-        private LocalDate matchDate;
-        private String homeTeamName;
-        private String homeTeamId;
-        private String awayTeamName;
-        private String awayTeamId;
-        private Integer ticketPrice;
-        private Integer maxParticipants;
+        private BoardType boardType;
         private String status;
         private Integer viewCount;
         private LocalDateTime createdAt;
+    }
+
+    @Getter @SuperBuilder @NoArgsConstructor
+    public static class MateResponse extends PostResponse {
+        private LocalDate matchDate;
+        private String homeTeamName;
+        private String awayTeamName;
+    }
+
+    @Getter @SuperBuilder @NoArgsConstructor
+    public static class CrewResponse extends PostResponse {
+        private String supportTeamName;
+        private Integer maxParticipants;
+        private Integer currentParticipants;
+        private String stadium;
+        private LocalDate matchDate;
+        private String matchTime;
+        private String seatArea;
+        private List<String> tags;
+    }
+
+    @Getter @SuperBuilder @NoArgsConstructor
+    public static class TransferResponse extends PostResponse {
+        private LocalDate matchDate;
+        private String homeTeamName;
+        private String awayTeamName;
+        private String seatArea;
+        private Integer ticketPrice;
+    }
+
+    /** 크루 참여 멤버 정보 */
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class CrewMemberResponse {
+        private String nickname;
+        private Double mannerTemperature;
+        private Boolean isLeader;
     }
 }

@@ -1,6 +1,7 @@
 package com.fullcount.controller;
 
 import com.fullcount.domain.BoardType;
+import com.fullcount.domain.PostStatus;
 import com.fullcount.dto.PostDto;
 import com.fullcount.dto.common.PagedResponse;
 import com.fullcount.service.PostService;
@@ -9,6 +10,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -17,27 +19,33 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Tag(name = "Post", description = "게시글 API")
 @RestController
 @RequestMapping("/api/posts")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "bearerAuth") // 모든 메서드에 토큰 자물쇠 적용
 public class PostController {
 
     private final PostService postService;
 
-    @Operation(summary = "게시글 목록 조회 (boardType 필터, 페이징)")
+    @Operation(summary = "게시글 목록 조회 (게시글 타입, 팀 필터, 모집 상태 필터 포함)")
     @GetMapping
     public ResponseEntity<PagedResponse<PostDto.PostResponse>> getPosts(
-            @RequestParam(defaultValue = "GENERAL") BoardType boardType,
-            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        return ResponseEntity.ok(postService.getPosts(boardType, pageable));
+            @RequestParam(defaultValue = "CREW") BoardType boardType,
+            @RequestParam(required = false) Long teamId, // 팀 선택 탭
+            @RequestParam(required = false) PostStatus status, // 모집 중 / 마감 필터
+            @ParameterObject @PageableDefault(size = 9, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+
+        return ResponseEntity.ok(postService.getPosts(boardType, teamId, status, pageable));
     }
 
     @Operation(summary = "팀 전용 게시글 목록")
     @GetMapping("/team/{teamId}")
     public ResponseEntity<PagedResponse<PostDto.PostResponse>> getTeamPosts(
             @PathVariable Long teamId,
-            @PageableDefault(size = 10) Pageable pageable) {
+            @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
         return ResponseEntity.ok(postService.getTeamPosts(teamId, pageable));
     }
 
@@ -47,8 +55,22 @@ public class PostController {
         return ResponseEntity.ok(postService.getPost(id));
     }
 
+    @Operation(summary = "크루 참여 멤버 조회")
+    @GetMapping("/{id}/members")
+    public ResponseEntity<List<PostDto.CrewMemberResponse>> getCrewMembers(@PathVariable Long id) {
+        return ResponseEntity.ok(postService.getCrewMembers(id));
+    }
+
+    @Operation(summary = "크루 참여 신청")
+    @PostMapping("/{id}/join")
+    public ResponseEntity<Void> joinCrew(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Long memberId) {
+        postService.joinCrew(id, memberId);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
     @Operation(summary = "게시글 작성")
-    @SecurityRequirement(name = "bearerAuth")
     @PostMapping
     public ResponseEntity<PostDto.PostResponse> createPost(
             @AuthenticationPrincipal Long memberId,
@@ -57,7 +79,6 @@ public class PostController {
     }
 
     @Operation(summary = "게시글 수정 (OPEN 상태만 가능)")
-    @SecurityRequirement(name = "bearerAuth")
     @PutMapping("/{id}")
     public ResponseEntity<PostDto.PostResponse> updatePost(
             @PathVariable Long id,
@@ -67,7 +88,6 @@ public class PostController {
     }
 
     @Operation(summary = "게시글 삭제")
-    @SecurityRequirement(name = "bearerAuth")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePost(
             @PathVariable Long id,
