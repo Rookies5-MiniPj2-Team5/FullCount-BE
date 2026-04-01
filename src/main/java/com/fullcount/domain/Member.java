@@ -71,6 +71,21 @@ public class Member {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(columnDefinition = "LONGTEXT")
+    private String profileImageUrl;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean chatAlert = true; // 기본값 모두 켜짐(true)
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean transferAlert = true;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean mannerAlert = true;
+
     // ────── 비즈니스 메서드 ──────
 
     public void updateNickname(String nickname) {
@@ -122,5 +137,15 @@ public class Member {
         if (this.balance < amount)
             throw new BusinessException(ErrorCode.INSUFFICIENT_BALANCE);
         this.balance -= amount;
+    }
+
+    public void updateProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
+    }
+
+    public void updateAlerts(Boolean chatAlert, Boolean transferAlert, Boolean mannerAlert) {
+        this.chatAlert = chatAlert;
+        this.transferAlert = transferAlert;
+        this.mannerAlert = mannerAlert;
     }
 }
