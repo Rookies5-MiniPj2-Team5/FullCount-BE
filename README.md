@@ -75,6 +75,19 @@ npm run dev
 4. 팀원의 리뷰 또는 확인을 거친 후 `main` 브랜치로 **Merge** 합니다.
 5. **main 브랜치에 직접 Push하는 것은 지양**합니다.
 
+### 원격 저장소 설정 방법
+기존 프로젝트의 원격 저장소를 새로운 레포지토리로 교체하려면 아래 명령어를 사용하세요.
+```powershell
+# 기존 origin 삭제
+git remote remove origin
+
+# 새 origin 등록 (Backend 기준 예시)
+git remote add origin https://github.com/Rookies5-MiniPj2-Team5/FullCount-BE.git
+
+# 현재 연결 상태 확인
+git remote -v
+```
+
 ---
 
 ## 📁 프로젝트 구조 (Backend 기준)
