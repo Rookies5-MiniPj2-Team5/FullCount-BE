@@ -8,7 +8,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "crew_participant")
+@Table(name = "crew_participant",
+        uniqueConstraints = @UniqueConstraint(name = "uk_crew_participant_post_member", columnNames = {"post_id", "member_id"}))
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -28,11 +29,11 @@ public class CrewParticipant {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    @Column(nullable = false)
+    @Column(name = "is_leader", nullable = false)
     @Builder.Default
     private Boolean isLeader = false;
 
     @CreatedDate
-    @Column(updatable = false)
+    @Column(name = "joined_at", updatable = false)
     private LocalDateTime joinedAt;
 }

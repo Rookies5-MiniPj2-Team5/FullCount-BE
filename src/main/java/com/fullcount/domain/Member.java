@@ -23,13 +23,13 @@ public class Member {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 100)
+    @Column(name = "email", nullable = false, unique = true, length = 100)
     private String email;
 
-    @Column(nullable = false, unique = true, length = 30)
+    @Column(name = "nickname", nullable = false, unique = true, length = 30)
     private String nickname;
 
-    @Column(nullable = false)
+    @Column(name = "password", nullable = false)
     private String password;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -37,37 +37,38 @@ public class Member {
     private Team team;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 15)
+    @Column(name = "badge_level", nullable = false, length = 15)
     @Builder.Default
     private BadgeLevel badgeLevel = BadgeLevel.ROOKIE;
 
     /** 기본 36.5도 */
-    @Column(nullable = false)
+    @Column(name = "manner_temperature", nullable = false)
     @Builder.Default
     private Double mannerTemperature = 36.5;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
+    @Column(name = "role", nullable = false, length = 10)
     @Builder.Default
     private MemberRole role = MemberRole.USER;
 
-    @Column(nullable = false)
+    @Column(name = "is_active", nullable = false)
     @Builder.Default
     private Boolean isActive = true;
 
     /** 시즌 내 팀 변경 여부 */
-    @Column(nullable = false)
+    @Column(name = "team_changed_this_season", nullable = false)
     @Builder.Default
     private Boolean teamChangedThisSeason = false;
 
-    @Column(nullable = false)
+    @Column(name = "balance", nullable = false)
     private int balance = 0;
 
     @CreatedDate
-    @Column(updatable = false)
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @LastModifiedDate
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     // ────── 비즈니스 메서드 ──────

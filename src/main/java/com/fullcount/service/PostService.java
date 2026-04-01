@@ -34,7 +34,6 @@ public class PostService {
 
         Post post = PostMapper.toEntity(req, author);
 
-        // 상속 타입별 추가 필드(팀 조회 등) 처리
         if (req instanceof PostDto.CreateMateRequest mateReq) {
             Team homeTeam = teamRepository.findById(mateReq.getHomeTeamId())
                     .orElseThrow(() -> new BusinessException(ErrorCode.TEAM_NOT_FOUND));
@@ -45,8 +44,6 @@ public class PostService {
             Team supportTeam = teamRepository.findById(crewReq.getSupportTeamId())
                     .orElseThrow(() -> new BusinessException(ErrorCode.TEAM_NOT_FOUND));
             post.setSupportTeam(supportTeam);
-
-            // 작성자를 크루 리더로 등록 (매퍼 활용)
             post.getParticipants().add(CrewParticipantMapper.toEntity(post, author, true));
         } else if (req instanceof PostDto.CreateTransferRequest transferReq) {
             if (transferReq.getTicketPrice() < 0) {
@@ -64,7 +61,8 @@ public class PostService {
 
     @Transactional(readOnly = true)
     public List<PostDto.CrewMemberResponse> getCrewMembers(Long postId) {
-        Post post = findPost(postId);
+        // findByIdWithAll: participants까지 fetch하므로 추가 쿼리 없음
+        Post post = findPostWithAll(postId);
         if (post.getBoardType() != BoardType.CREW) {
             throw new BusinessException(ErrorCode.INVALID_BOARD_TYPE);
         }
@@ -76,7 +74,8 @@ public class PostService {
 
     @Transactional
     public void joinCrew(Long postId, Long memberId) {
-        Post post = findPost(postId);
+        // participants 순회(중복·인원 체크) → participants fetch join 전용 쿼리 사용
+        Post post = findPostWithParticipants(postId);
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
@@ -88,19 +87,16 @@ public class PostService {
             throw new BusinessException(ErrorCode.POST_NOT_EDITABLE);
         }
 
-        // 이미 참여 중인지 체크
         boolean alreadyParticipating = post.getParticipants().stream()
                 .anyMatch(p -> p.getMember().getId().equals(memberId));
         if (alreadyParticipating) {
             throw new BusinessException(ErrorCode.ALREADY_PARTICIPATING);
         }
 
-        // 모집 인원 체크
         if (post.getParticipants().size() >= post.getMaxParticipants()) {
             throw new BusinessException(ErrorCode.CREW_FULL);
         }
 
-        // 크루 참여자 등록 (매퍼 활용)
         post.getParticipants().add(CrewParticipantMapper.toEntity(post, member, false));
     }
 
@@ -118,18 +114,18 @@ public class PostService {
         return PagedResponse.of(page);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public PostDto.PostResponse getPost(Long postId) {
-        Post post = postRepository.findByIdWithAll(postId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
-
+        // findByIdWithAll: participants, 연관 팀 모두 fetch → 추가 쿼리 없음
+        Post post = findPostWithAll(postId);
         post.incrementViewCount();
         return PostMapper.toResponse(post);
     }
 
     @Transactional
     public PostDto.PostResponse updatePost(Long postId, Long memberId, PostDto.UpdatePostRequest req) {
-        Post post = findPost(postId);
+        // author 권한 체크만 필요 → findByIdWithAuthor 사용
+        Post post = findPostWithAuthor(postId);
 
         if (!post.getAuthor().getId().equals(memberId)) {
             throw new BusinessException(ErrorCode.ACCESS_DENIED);
@@ -141,7 +137,8 @@ public class PostService {
 
     @Transactional
     public void deletePost(Long postId, Long memberId) {
-        Post post = findPost(postId);
+        // author 권한 체크만 필요 → findByIdWithAuthor 사용
+        Post post = findPostWithAuthor(postId);
 
         if (!post.getAuthor().getId().equals(memberId)) {
             throw new BusinessException(ErrorCode.ACCESS_DENIED);
@@ -154,8 +151,32 @@ public class PostService {
         postRepository.delete(post);
     }
 
-    private Post findPost(Long postId) {
-        return postRepository.findById(postId)
+    // ── 내부 조회 헬퍼 ──────────────────────────────────────────────────────────
+
+    /**
+     * author만 fetch (권한 체크용: updatePost, deletePost)
+     * - author lazy 로딩 방지
+     */
+    private Post findPostWithAuthor(Long postId) {
+        return postRepository.findByIdWithAuthor(postId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
+    }
+
+    /**
+     * 전체 fetch (상세 조회, getCrewMembers용)
+     * - author, team, homeTeam, awayTeam, supportTeam, participants(+member) 모두 포함
+     */
+    private Post findPostWithAll(Long postId) {
+        return postRepository.findByIdWithAll(postId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
+    }
+
+    /**
+     * participants fetch (joinCrew용)
+     * - participants 순회, member 접근 N+1 방지
+     */
+    private Post findPostWithParticipants(Long postId) {
+        return postRepository.findByIdWithParticipants(postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
     }
 }

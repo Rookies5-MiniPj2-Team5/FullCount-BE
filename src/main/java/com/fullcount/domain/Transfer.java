@@ -11,7 +11,11 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "transfer")
+@Table(name = "transfer", indexes = {
+        @Index(name = "idx_transfer_status", columnList = "status"),
+        @Index(name = "idx_transfer_seller_id", columnList = "seller_id"),
+        @Index(name = "idx_transfer_buyer_id", columnList = "buyer_id")
+})
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -35,19 +39,20 @@ public class Transfer {
     @JoinColumn(name = "buyer_id")
     private Member buyer;
 
-    @Column(nullable = false)
+    @Column(name = "price", nullable = false)
     private Integer price;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(name = "status", nullable = false, length = 20)
     @Builder.Default
     private TransferStatus status = TransferStatus.REQUESTED;
 
     @CreatedDate
-    @Column(updatable = false)
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @LastModifiedDate
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     // ────── 비즈니스 메서드 ──────
