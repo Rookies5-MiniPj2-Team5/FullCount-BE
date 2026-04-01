@@ -60,6 +60,23 @@ npm run dev
 
 ---
 
+## 🛠 Git Branch Strategy
+
+본 프로젝트는 원활한 협업을 위해 다음과 같은 브랜치 전략을 따릅니다.
+
+- **main**: 코드 통합 및 배포를 위한 기준 브랜치입니다. 모든 코드는 최종적으로 이곳으로 모입니다.
+- **feature/{기능명}**: 각자 맡은 기능 개발을 진행하는 개인 작업 브랜치입니다.
+  - 예: `feature/post-api`, `feature/chat-stomp`
+
+### 협업 프로세스
+1. 본인의 작업 브랜치에서 개발을 완료합니다. (`git checkout -b feature/post-api`)
+2. 작업 내용을 원격 레포지토리에 Push 합니다.
+3. GitHub에서 **Pull Request(PR)**를 생성하여 팀원들에게 공유합니다.
+4. 팀원의 리뷰 또는 확인을 거친 후 `main` 브랜치로 **Merge** 합니다.
+5. **main 브랜치에 직접 Push하는 것은 지양**합니다.
+
+---
+
 ## 📁 프로젝트 구조 (Backend 기준)
 - `src/main/java/com/fullcount/` : 백엔드 도메인 및 비즈니스 로직
 - `src/main/resources/templates/` : 관리자 페이지 Thymeleaf 템플릿
