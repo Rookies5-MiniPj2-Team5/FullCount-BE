@@ -20,7 +20,10 @@ public class MemberMapper {
                 .badgeLevel(member.getBadgeLevel().name())
                 .mannerTemperature(member.getMannerTemperature())
                 .role(member.getRole().name())
-                .profileImageUrl(member.getProfileImageUrl()) // ⭐️ 추가된 부분!
+                .profileImageUrl(member.getProfileImageUrl()) // 프로필 이미지 URL
+                .chatAlert(member.getChatAlert())             // ⭐️ 알림 설정: 채팅
+                .transferAlert(member.getTransferAlert())     // ⭐️ 알림 설정: 양도 거래
+                .mannerAlert(member.getMannerAlert())         // ⭐️ 알림 설정: 매너 평가
                 .build();
     }
 

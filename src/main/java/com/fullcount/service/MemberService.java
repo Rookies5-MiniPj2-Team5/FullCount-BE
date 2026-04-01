@@ -78,4 +78,11 @@ public class MemberService {
         // 2. 새 비밀번호 암호화 후 변경
         member.updatePassword(passwordEncoder.encode(req.getNewPassword()));
     }
+
+    @Transactional
+    public void updateAlerts(Long memberId, MemberDto.UpdateAlertRequest req) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        member.updateAlerts(req.getChatAlert(), req.getTransferAlert(), req.getMannerAlert());
+    }
 }

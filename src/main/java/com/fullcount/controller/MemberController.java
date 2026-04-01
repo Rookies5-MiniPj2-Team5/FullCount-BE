@@ -59,4 +59,13 @@ public class MemberController {
         memberService.updatePassword(memberId, req);
         return ResponseEntity.ok().build();
     }
+
+    @Operation(summary = "알림 설정 변경")
+    @PutMapping("/me/alerts")
+    public ResponseEntity<Void> updateAlerts(
+            @AuthenticationPrincipal Long memberId,
+            @RequestBody MemberDto.UpdateAlertRequest req) {
+        memberService.updateAlerts(memberId, req);
+        return ResponseEntity.ok().build();
+    }
 }

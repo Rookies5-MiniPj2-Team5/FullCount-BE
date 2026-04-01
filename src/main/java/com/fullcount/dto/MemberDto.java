@@ -20,6 +20,9 @@ public class MemberDto {
         private Double mannerTemperature;
         private String role;
         private String profileImageUrl;
+        private Boolean chatAlert;
+        private Boolean transferAlert;
+        private Boolean mannerAlert;
     }
 
     @Getter
@@ -63,5 +66,15 @@ public class MemberDto {
 
         @Schema(description = "새 비밀번호")
         private String newPassword;
+    }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Schema(description = "알림 설정 변경 요청")
+    public static class UpdateAlertRequest {
+        private Boolean chatAlert;
+        private Boolean transferAlert;
+        private Boolean mannerAlert;
     }
 }
