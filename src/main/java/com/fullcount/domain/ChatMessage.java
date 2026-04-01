@@ -28,10 +28,10 @@ public class ChatMessage {
     @JoinColumn(name = "sender_id", nullable = false)
     private Member sender;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
 
     @CreatedDate
-    @Column(updatable = false)
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 }

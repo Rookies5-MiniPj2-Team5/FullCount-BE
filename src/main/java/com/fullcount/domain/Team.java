@@ -15,12 +15,12 @@ public class Team {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 30)
+    @Column(name = "name", nullable = false, length = 30)
     private String name;          // 두산 베어스
 
-    @Column(nullable = false, length = 5)
+    @Column(name = "short_name", nullable = false, length = 5)
     private String shortName;     // DU
 
-    @Column(nullable = false, length = 50)
+    @Column(name = "home_stadium", nullable = false, length = 50)
     private String homeStadium;   // 잠실야구장
 }

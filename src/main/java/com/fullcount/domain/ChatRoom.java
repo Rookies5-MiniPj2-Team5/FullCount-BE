@@ -27,7 +27,7 @@ public class ChatRoom {
     private Post post;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 15)
+    @Column(name = "room_type", nullable = false, length = 15)
     private ChatRoomType roomType;
 
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -35,6 +35,6 @@ public class ChatRoom {
     private List<ChatMessage> messages = new ArrayList<>();
 
     @CreatedDate
-    @Column(updatable = false)
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 }

@@ -10,7 +10,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "post")
+@Table(name = "post", indexes = {
+        @Index(name = "idx_post_board_type_created_at", columnList = "board_type, created_at"),
+        @Index(name = "idx_post_status_created_at", columnList = "status, created_at")
+})
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -45,51 +48,55 @@ public class Post {
     private Team supportTeam;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(name = "board_type", nullable = false, length = 20)
     @Builder.Default
     private BoardType boardType = BoardType.CREW;
 
-    @Column(nullable = false, length = 200)
+    @Column(name = "title", nullable = false, length = 200)
     private String title;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
 
     /** MEETUP / TRANSFER / CREW 에 필수 */
+    @Column(name = "match_date")
     private LocalDate matchDate;
 
     /** CREW 전용 - 경기 시간 */
-    @Column(length = 20)
+    @Column(name = "match_time", length = 20)
     private String matchTime;
 
     /** CREW 전용 - 경기장 */
-    @Column(length = 100)
+    @Column(name = "stadium", length = 100)
     private String stadium;
 
     /** CREW / TRANSFER 전용 - 좌석 구역 */
-    @Column(length = 100)
+    @Column(name = "seat_area", length = 100)
     private String seatArea;
 
     /** TRANSFER 전용 - 티켓 가격 */
+    @Column(name = "ticket_price")
     private Integer ticketPrice;
 
     /** CREW 전용 - 최대 모집 인원 */
+    @Column(name = "max_participants")
     private Integer maxParticipants;
 
     /** CREW 전용 - 공개 여부 */
+    @Column(name = "is_public", nullable = false)
     @Builder.Default
     private Boolean isPublic = true;
 
     /** CREW 전용 - 태그 (쉼표로 구분하여 저장) */
-    @Column(length = 500)
+    @Column(name = "tags", length = 500)
     private String tags;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(name = "status", nullable = false, length = 20)
     @Builder.Default
     private PostStatus status = PostStatus.OPEN;
 
-    @Column(nullable = false)
+    @Column(name = "view_count", nullable = false)
     @Builder.Default
     private Integer viewCount = 0;
 
@@ -99,10 +106,11 @@ public class Post {
     private java.util.List<CrewParticipant> participants = new java.util.ArrayList<>();
 
     @CreatedDate
-    @Column(updatable = false)
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @LastModifiedDate
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     // ────── 비즈니스 메서드 ──────

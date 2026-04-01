@@ -17,13 +17,13 @@ public class RefreshToken {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 500)
+    @Column(name = "token", nullable = false, unique = true, length = 500)
     private String token;
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "member_id", nullable = false, unique = true)
     private Long memberId;
 
-    @Column(nullable = false)
+    @Column(name = "expiry_at", nullable = false)
     private LocalDateTime expiryAt;
 
     public void updateToken(String token, LocalDateTime expiryAt) {
