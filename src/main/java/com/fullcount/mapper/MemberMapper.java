@@ -20,6 +20,7 @@ public class MemberMapper {
                 .badgeLevel(member.getBadgeLevel().name())
                 .mannerTemperature(member.getMannerTemperature())
                 .role(member.getRole().name())
+                .profileImageUrl(member.getProfileImageUrl()) // ⭐️ 추가된 부분!
                 .build();
     }
 

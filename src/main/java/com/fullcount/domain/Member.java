@@ -70,6 +70,9 @@ public class Member {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
+    @Column(columnDefinition = "LONGTEXT")
+    private String profileImageUrl;
+
     // ────── 비즈니스 메서드 ──────
 
     public void updateNickname(String nickname) {
@@ -121,5 +124,9 @@ public class Member {
         if (this.balance < amount)
             throw new BusinessException(ErrorCode.INSUFFICIENT_BALANCE);
         this.balance -= amount;
+    }
+
+    public void updateProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
     }
 }

@@ -41,4 +41,22 @@ public class MemberController {
         memberService.changeTeam(memberId, req);
         return ResponseEntity.ok().build();
     }
+
+    @Operation(summary = "프로필 이미지 변경")
+    @PutMapping("/me/profile-image")
+    public ResponseEntity<Void> updateProfileImage(
+            @AuthenticationPrincipal Long memberId,
+            @RequestBody MemberDto.UpdateProfileImageRequest req) {
+        memberService.updateProfileImage(memberId, req);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "비밀번호 변경")
+    @PutMapping("/me/password")
+    public ResponseEntity<Void> updatePassword(
+            @AuthenticationPrincipal Long memberId,
+            @RequestBody MemberDto.UpdatePasswordRequest req) {
+        memberService.updatePassword(memberId, req);
+        return ResponseEntity.ok().build();
+    }
 }

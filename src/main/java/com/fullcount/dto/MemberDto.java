@@ -1,6 +1,7 @@
 package com.fullcount.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,6 +19,7 @@ public class MemberDto {
         private String badgeLevel;
         private Double mannerTemperature;
         private String role;
+        private String profileImageUrl;
     }
 
     @Getter
@@ -40,5 +42,26 @@ public class MemberDto {
     public static class ChangeTeamRequest {
         @Schema(description = "변경할 팀 ID", example = "3")
         private Long teamId;
+    }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Schema(description = "프로필 이미지 변경 요청")
+    public static class UpdateProfileImageRequest {
+        @Schema(description = "이미지 URL 주소")
+        private String profileImageUrl;
+    }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Schema(description = "비밀번호 변경 요청")
+    public static class UpdatePasswordRequest {
+        @Schema(description = "현재 비밀번호")
+        private String currentPassword;
+
+        @Schema(description = "새 비밀번호")
+        private String newPassword;
     }
 }
