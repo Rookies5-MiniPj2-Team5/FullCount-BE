@@ -67,7 +67,6 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 공개 접근 허용 (로그인/회원가입/토큰갱신)
                         .requestMatchers("/api/auth/login", "/api/auth/signup", "/api/auth/refresh").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/teams/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/baseball/**").permitAll()
                         // Swagger, H2 콘솔, WebSocket
