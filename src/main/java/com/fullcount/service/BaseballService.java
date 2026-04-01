@@ -17,7 +17,9 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -91,6 +93,98 @@ public class BaseballService {
             }
         }
         log.info("{}년도 야구 일정 DB 동기화 완료!", year);
+    }
+
+    // 3. 네이버 라이브 게임 일정 검색 (오늘의 경기 실시간 조회용)
+    @Transactional(readOnly = true)
+    public String getLiveGames(String date) {
+        String url = UriComponentsBuilder.fromHttpUrl("https://api-gw.sports.naver.com/schedule/games")
+                .queryParam("categoryIds", "kbo")
+                .queryParam("date", date)
+                .toUriString();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Referer", "https://sports.news.naver.com/");
+        headers.set("Origin", "https://sports.news.naver.com");
+        headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36");
+        headers.set("Accept", "application/json, text/plain, */*");
+        headers.set("Accept-Language", "ko-KR,ko;q=0.9");
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        try {
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+            return response.getBody();
+        } catch (Exception e) {
+            log.error("라이브 게임 연동 중 오류 발생: {}", e.getMessage());
+            return "{\"error\":\"fail\"}";
+        }
+    }
+
+    // 4. KBO 공식 팀 순위 HTML 크롤링
+    public List<Map<String, String>> getKboStandings() {
+        String url = "https://www.koreabaseball.com/Record/TeamRank/TeamRankDaily.aspx";
+        List<Map<String, String>> standings = new ArrayList<>();
+        try {
+            org.jsoup.nodes.Document doc = org.jsoup.Jsoup.connect(url)
+                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36")
+                    .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                    .header("Accept-Language", "ko-KR,ko;q=0.9")
+                    .get();
+
+            String[] tableSelectors = {
+                    "#content table tbody tr",
+                    "table.tData01 tbody tr",
+                    "#tblRecord tbody tr",
+                    ".record_list table tbody tr",
+                    "table tbody tr"
+            };
+
+            org.jsoup.select.Elements rows = new org.jsoup.select.Elements();
+            for (String selector : tableSelectors) {
+                rows = doc.select(selector);
+                if (rows.size() >= 8) break;
+            }
+
+            Map<String, String> kboTeamMap = Map.of(
+                    "LG", "LG", "두산", "DU", "SSG", "SSG", "KIA", "KIA", "삼성", "SA",
+                    "롯데", "LO", "한화", "HH", "KT", "KT", "NC", "NC", "키움", "WO"
+            );
+
+            for (org.jsoup.nodes.Element row : rows) {
+                org.jsoup.select.Elements cells = row.select("td");
+                if (cells.size() < 7) continue;
+
+                String rankText = cells.get(0).text().trim();
+                int rank;
+                try {
+                    rank = Integer.parseInt(rankText);
+                } catch (NumberFormatException e) {
+                    continue;
+                }
+                if (rank < 1 || rank > 10) continue;
+
+                String teamName = cells.get(1).text().trim();
+                String teamId = kboTeamMap.get(teamName);
+                if (teamId == null) continue;
+
+                Map<String, String> teamData = new HashMap<>();
+                teamData.put("rank", String.valueOf(rank));
+                teamData.put("teamId", teamId);
+                teamData.put("teamName", teamName);
+                teamData.put("games", cells.get(2).text().trim());
+                teamData.put("wins", cells.get(3).text().trim());
+                teamData.put("losses", cells.get(4).text().trim());
+                teamData.put("draws", cells.get(5).text().trim());
+                teamData.put("pct", cells.get(6).text().trim());
+                teamData.put("gb", cells.get(7).text().trim());
+
+                standings.add(teamData);
+            }
+        } catch (Exception e) {
+            log.error("KBO 순위 크롤링 중 오류: {}", e.getMessage());
+        }
+        standings.sort(java.util.Comparator.comparingInt(a -> Integer.parseInt(a.get("rank"))));
+        return standings;
     }
 
     // 네이버 API 실제 호출 로직 (내부에서만 사용)

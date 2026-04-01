@@ -17,7 +17,9 @@ public class GlobalResponseAdvice implements ResponseBodyAdvice<Object> {
 
     @Override
     public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
-        return true;
+        // StringHttpMessageConverter를 사용하는 응답(String 데이터)은 
+        // Map으로 래핑 시 ClassCastException이 발생하므로 공통 래핑에서 제외합니다.
+        return !org.springframework.http.converter.StringHttpMessageConverter.class.isAssignableFrom(converterType);
     }
 
     @Override
