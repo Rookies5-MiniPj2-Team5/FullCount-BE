@@ -35,28 +35,38 @@ public class PostService {
         Post post = PostMapper.toEntity(req, author);
 
         if (req instanceof PostDto.CreateMateRequest mateReq) {
-            Team homeTeam = teamRepository.findById(mateReq.getHomeTeamId())
-                    .orElseThrow(() -> new BusinessException(ErrorCode.TEAM_NOT_FOUND));
-            Team awayTeam = teamRepository.findById(mateReq.getAwayTeamId())
-                    .orElseThrow(() -> new BusinessException(ErrorCode.TEAM_NOT_FOUND));
+            Team homeTeam = findTeam(mateReq.getHomeTeamId());
+            Team awayTeam = findTeam(mateReq.getAwayTeamId());
             post.setTeams(homeTeam, awayTeam);
         } else if (req instanceof PostDto.CreateCrewRequest crewReq) {
-            Team supportTeam = teamRepository.findById(crewReq.getSupportTeamId())
-                    .orElseThrow(() -> new BusinessException(ErrorCode.TEAM_NOT_FOUND));
+            Team supportTeam = findTeam(crewReq.getSupportTeamId());
             post.setSupportTeam(supportTeam);
             post.getParticipants().add(CrewParticipantMapper.toEntity(post, author, true));
         } else if (req instanceof PostDto.CreateTransferRequest transferReq) {
             if (transferReq.getTicketPrice() < 0) {
                 throw new BusinessException(ErrorCode.TICKET_PRICE_EXCEEDED);
             }
-            Team homeTeam = teamRepository.findById(transferReq.getHomeTeamId())
-                    .orElseThrow(() -> new BusinessException(ErrorCode.TEAM_NOT_FOUND));
-            Team awayTeam = teamRepository.findById(transferReq.getAwayTeamId())
-                    .orElseThrow(() -> new BusinessException(ErrorCode.TEAM_NOT_FOUND));
+            Team homeTeam = findTeam(transferReq.getHomeTeamId());
+            Team awayTeam = findTeam(transferReq.getAwayTeamId());
             post.setTeams(homeTeam, awayTeam);
         }
 
         return PostMapper.toResponse(postRepository.save(post));
+    }
+
+    private Team findTeam(String identifier) {
+        if (identifier == null || identifier.isBlank()) {
+            throw new BusinessException(ErrorCode.TEAM_NOT_FOUND);
+        }
+
+        try {
+            Long id = Long.parseLong(identifier);
+            return teamRepository.findById(id)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.TEAM_NOT_FOUND));
+        } catch (NumberFormatException e) {
+            return teamRepository.findByShortName(identifier)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.TEAM_NOT_FOUND));
+        }
     }
 
     @Transactional(readOnly = true)
@@ -101,14 +111,19 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public PagedResponse<PostDto.PostResponse> getPosts(BoardType boardType, Long teamId, PostStatus status, Pageable pageable) {
+    public PagedResponse<PostDto.PostResponse> getPosts(BoardType boardType, String teamIdStr, PostStatus status, Pageable pageable) {
+        Long teamId = null;
+        if (teamIdStr != null && !teamIdStr.isBlank()) {
+            teamId = findTeam(teamIdStr).getId();
+        }
         Page<PostDto.PostResponse> page = postRepository.findByFilters(boardType, teamId, status, pageable)
                 .map(PostMapper::toResponse);
         return PagedResponse.of(page);
     }
 
     @Transactional(readOnly = true)
-    public PagedResponse<PostDto.PostResponse> getTeamPosts(Long teamId, Pageable pageable) {
+    public PagedResponse<PostDto.PostResponse> getTeamPosts(String teamIdStr, Pageable pageable) {
+        Long teamId = findTeam(teamIdStr).getId();
         Page<PostDto.PostResponse> page = postRepository.findTeamOnlyByTeamId(teamId, pageable)
                 .map(PostMapper::toResponse);
         return PagedResponse.of(page);

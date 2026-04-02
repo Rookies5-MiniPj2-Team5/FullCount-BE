@@ -32,7 +32,7 @@ public class AuthDto {
 
         @Schema(description = "응원 팀 ID", example = "1")
         @NotNull(message = "응원 팀을 선택해주세요.")
-        private Long teamId;
+        private String teamId;
     }
 
     @Getter
