@@ -1,5 +1,6 @@
 package com.fullcount.config;
 
+import org.springframework.beans.factory.annotation.Value; // 🌟 필수 추가
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -7,12 +8,17 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
+    // 🌟 application.yml에서 파일 저장 경로를 읽어옵니다.
+    @Value("${file.upload-dir}")
+    private String uploadDir;
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // 프론트엔드에서 http://localhost:8080/uploads/... 로 접속하면
-        // 실제 컴퓨터의 C:/fullcount/uploads/ 폴더의 파일을 보여주도록 설정
+        // file:/// 기반으로 실제 경로를 맵핑합니다. 윈도우의 \ 기호도 호환되도록 / 로 치환합니다.
+        String location = "file:" + uploadDir;
+        location = location.replace("\\", "/");
+
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:///C:/fullcount/uploads/");
-        // 맥/리눅스 환경이라면 "file:/Users/이름/fullcount/uploads/" 처럼 수정
+                .addResourceLocations(location);
     }
 }
