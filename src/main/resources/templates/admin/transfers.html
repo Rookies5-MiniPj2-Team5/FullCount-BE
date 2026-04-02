@@ -1,181 +1,120 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>거래 모니터링 - 풀카운트</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #f4f6f9;
-            color: #1a1a2e;
-        }
-
-        /* ===== 상단 내비게이션 ===== */
-        .admin-topnav {
-            background: #1a1a2e;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-        }
-        .admin-topnav .nav-inner {
-            display: flex;
-            align-items: center;
-            height: 60px;
-            padding: 0 32px;
-            gap: 32px;
-        }
-        .admin-topnav .brand {
-            color: #e94560;
-            font-size: 1.3rem;
-            font-weight: 800;
-            white-space: nowrap;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .admin-topnav .nav-links {
-            display: flex;
-            gap: 4px;
-            flex: 1;
-        }
-        .admin-topnav .nav-links a {
-            color: #c0c0d0;
-            text-decoration: none;
-            padding: 8px 18px;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .admin-topnav .nav-links a:hover { background: #16213e; color: #fff; }
-        .admin-topnav .nav-links a.active { background: #e94560; color: #fff; }
-        .admin-topnav .nav-right { display: flex; align-items: center; }
-        .admin-topnav .admin-badge {
-            background: rgba(233,69,96,0.2);
-            color: #e94560;
-            border: 1px solid rgba(233,69,96,0.4);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 700;
-        }
-
-        /* ===== 메인 컨텐츠 ===== */
-        .admin-main { padding: 32px; max-width: 1400px; margin: 0 auto; }
-        .page-header { margin-bottom: 28px; }
-        .page-header h2 { font-size: 1.6rem; font-weight: 800; color: #1a1a2e; margin-bottom: 4px; }
-        .page-header p { font-size: 0.9rem; color: #6c757d; }
-
-        /* ===== 테이블 ===== */
-        .table-card {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.07);
-            overflow: hidden;
-        }
-        .table { margin-bottom: 0; }
-        .table thead th {
-            background: #1a1a2e;
-            color: #fff;
-            font-weight: 600;
-            font-size: 0.85rem;
-            border: none;
-            padding: 14px 16px;
-        }
-        .table tbody td {
-            padding: 14px 16px;
-            vertical-align: middle;
-            font-size: 0.9rem;
-            border-color: #f0f0f0;
-        }
-        .table tbody tr:hover { background-color: #f8f9fc; }
-        .pagination-wrap { padding: 20px; }
-    </style>
-</head>
+<head th:replace="~{admin/fragments :: head('양도 거래 관리')}"></head>
 <body>
+<div class="admin-shell">
+    <header th:replace="~{admin/fragments :: nav('transfers')}"></header>
 
-<!-- 상단 내비게이션 -->
-<nav class="admin-topnav">
-    <div class="nav-inner">
-        <a href="/admin/dashboard" class="brand">⚾ Full Count <span style="font-size:0.7rem; color:#aaa; font-weight:400;">관리자</span></a>
-        <div class="nav-links">
-            <a th:href="@{/admin/dashboard}">📊 대시보드</a>
-            <a th:href="@{/admin/members}">👥 회원 관리</a>
-            <a th:href="@{/admin/transfers}" class="active">💳 거래 모니터링</a>
+    <main class="admin-main">
+        <div class="page-header">
+            <div>
+                <h1>양도 거래 관리</h1>
+                <p>거래 상태를 검색하고, 티켓 전달, 완료, 취소를 관리자 권한으로 처리합니다.</p>
+            </div>
         </div>
-        <div class="nav-right">
-            <span class="admin-badge">🛡️ ADMIN</span>
-        </div>
-    </div>
-</nav>
 
-<!-- 메인 컨텐츠 -->
-<main class="admin-main">
-    <div class="page-header">
-        <h2>💳 거래 모니터링</h2>
-        <p>티켓 양도 거래 현황을 실시간으로 확인합니다.</p>
-    </div>
+        <div th:replace="~{admin/fragments :: alerts}"></div>
 
-    <div class="table-card">
-        <table class="table table-hover align-middle">
-            <thead>
-            <tr>
-                <th>ID</th>
-                <th>게시글</th>
-                <th>양도자</th>
-                <th>양수자</th>
-                <th>금액</th>
-                <th>상태</th>
-                <th>생성일</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="t : ${transfers}">
-                <td th:text="${t.id}"></td>
-                <td class="fw-semibold" th:text="${t.post.title}"></td>
-                <td th:text="${t.seller.nickname}"></td>
-                <td th:text="${t.buyer != null ? t.buyer.nickname : '-'}"></td>
-                <td class="fw-bold" th:text="${#numbers.formatInteger(t.price, 0, 'COMMA') + '원'}"></td>
-                <td>
-                    <span class="badge"
-                          th:classappend="${t.status.name() == 'COMPLETED'} ? 'bg-success' :
-                                          (${t.status.name() == 'CANCELLED'} ? 'bg-danger' : 'bg-warning text-dark')"
-                          th:text="${t.status}"></span>
-                </td>
-                <td th:text="${#temporals.format(t.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
-            </tr>
-            </tbody>
-        </table>
+        <section class="panel">
+            <form method="get" th:action="@{/admin/transfers}" th:object="${transferFilter}">
+                <div class="filter-bar">
+                    <div>
+                        <input type="text" th:field="*{keyword}" placeholder="글 제목, 판매자, 구매자 검색">
+                        <p class="field-error" th:if="${#fields.hasErrors('keyword')}" th:errors="*{keyword}"></p>
+                    </div>
+                    <select th:field="*{status}">
+                        <option value="">전체 상태</option>
+                        <option th:each="item : ${transferStatuses}" th:value="${item}" th:text="${item}"></option>
+                    </select>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-primary" type="submit">검색</button>
+                    <a class="btn btn-light" th:href="@{/admin/transfers}">초기화</a>
+                </div>
+            </form>
+        </section>
 
-        <!-- 페이지네이션 -->
-        <div class="pagination-wrap" th:if="${transfers.totalPages > 1}">
-            <nav>
-                <ul class="pagination justify-content-center mb-0">
-                    <li class="page-item" th:classappend="${transfers.first} ? 'disabled'">
-                        <a class="page-link" th:href="@{/admin/transfers(page=${transfers.number - 1})}">이전</a>
-                    </li>
-                    <li class="page-item"
-                        th:each="i : ${#numbers.sequence(0, transfers.totalPages - 1)}"
-                        th:classappend="${i == transfers.number} ? 'active'">
-                        <a class="page-link" th:href="@{/admin/transfers(page=${i})}" th:text="${i + 1}"></a>
-                    </li>
-                    <li class="page-item" th:classappend="${transfers.last} ? 'disabled'">
-                        <a class="page-link" th:href="@{/admin/transfers(page=${transfers.number + 1})}">다음</a>
-                    </li>
-                </ul>
-            </nav>
-        </div>
-    </div>
-</main>
+        <section class="panel" style="margin-top: 18px;">
+            <div class="filter-help" th:if="${keyword != null and !#strings.isEmpty(keyword)}">
+                현재 검색어: <strong th:text="${keyword}"></strong>
+            </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+            <div class="table-wrap">
+                <table class="admin-table">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>거래 글</th>
+                        <th>참여자</th>
+                        <th>가격</th>
+                        <th>상태</th>
+                        <th>생성일</th>
+                        <th>관리 액션</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="transfer : ${transfers.content}">
+                        <td th:text="${transfer.id}">1</td>
+                        <td>
+                            <strong th:utext="${@adminSearchHighlighter.highlight(transfer.post.title, keyword)}">양도 글</strong>
+                            <div class="muted" th:text="${transfer.post.seatArea != null ? transfer.post.seatArea : '좌석 정보 없음'}">좌석 정보</div>
+                        </td>
+                        <td>
+                            <div>판매자 <strong th:utext="${@adminSearchHighlighter.highlight(transfer.seller.nickname, keyword)}">seller</strong></div>
+                            <div class="muted" th:utext="${transfer.buyer != null ? '구매자 ' + @adminSearchHighlighter.highlight(transfer.buyer.nickname, keyword) : '구매자 미지정'}">구매자 미지정</div>
+                        </td>
+                        <td th:text="|${#numbers.formatInteger(transfer.price, 0, 'COMMA')}원|">10,000원</td>
+                        <td>
+                            <span class="badge-pill"
+                                  th:classappend="${transfer.status.name() == 'COMPLETED'} ? ' tone-success' :
+                                                  (${transfer.status.name() == 'CANCELLED'} ? ' tone-danger' :
+                                                  (${transfer.status.name() == 'TICKET_SENT'} ? ' tone-primary' : ' tone-warning'))"
+                                  th:text="${transfer.status}">REQUESTED</span>
+                        </td>
+                        <td th:text="${#temporals.format(transfer.createdAt, 'yyyy-MM-dd HH:mm')}">2026-04-02 09:00</td>
+                        <td>
+                            <div class="action-stack">
+                                <form th:if="${transfer.status.name() == 'PAYMENT_COMPLETED'}"
+                                      method="post" th:action="@{|/admin/transfers/${transfer.id}/ticket-sent|}">
+                                    <input type="hidden" name="returnUrl" th:value="${returnUrl}">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                    <button class="btn btn-primary" type="submit">티켓 전달</button>
+                                </form>
+                                <form th:if="${transfer.status.name() != 'COMPLETED' and transfer.status.name() != 'CANCELLED' and transfer.status.name() != 'REQUESTED'}"
+                                      method="post" th:action="@{|/admin/transfers/${transfer.id}/complete|}">
+                                    <input type="hidden" name="returnUrl" th:value="${returnUrl}">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                    <button class="btn btn-success" type="submit">완료 처리</button>
+                                </form>
+                                <form th:if="${transfer.status.name() != 'COMPLETED' and transfer.status.name() != 'CANCELLED'}"
+                                      method="post" th:action="@{|/admin/transfers/${transfer.id}/cancel|}">
+                                    <input type="hidden" name="returnUrl" th:value="${returnUrl}">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                    <button class="btn btn-danger" type="submit">취소 처리</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${transfers.isEmpty()}">
+                        <td colspan="7" class="empty-state">검색 조건에 맞는 거래가 없습니다.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination" th:if="${transfers.totalPages > 1}">
+                <a th:classappend="${transfers.first} ? ' is-disabled'"
+                   th:href="@{/admin/transfers(page=${transfers.number - 1}, keyword=${keyword}, status=${status})}">이전</a>
+                <th:block th:each="i : ${#numbers.sequence(0, transfers.totalPages - 1)}">
+                    <a th:classappend="${i == transfers.number} ? ' is-active'"
+                       th:href="@{/admin/transfers(page=${i}, keyword=${keyword}, status=${status})}"
+                       th:text="${i + 1}">1</a>
+                </th:block>
+                <a th:classappend="${transfers.last} ? ' is-disabled'"
+                   th:href="@{/admin/transfers(page=${transfers.number + 1}, keyword=${keyword}, status=${status})}">다음</a>
+            </div>
+        </section>
+    </main>
+</div>
 </body>
 </html>

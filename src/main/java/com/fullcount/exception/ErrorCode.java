@@ -20,7 +20,7 @@ public enum ErrorCode {
     DUPLICATE_NICKNAME("MEM_003", "이미 사용 중인 닉네임입니다.", HttpStatus.CONFLICT),
     TEAM_CHANGE_LIMIT("MEM_004", "이번 시즌 팀 변경 횟수를 초과했습니다.", HttpStatus.BAD_REQUEST),
     ALREADY_IN_TEAM("MEM_005", "이미 선택한 팀과 동일한 팀으로 변경할 수 없습니다.", HttpStatus.BAD_REQUEST),
-    INVALID_PASSWORD("MEM_006", "현재 비밀번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST), // ⭐️ 수정된 부분
+    INVALID_PASSWORD("MEM_006", "현재 비밀번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST),
 
     // 게시글
     POST_NOT_FOUND("POST_001", "존재하지 않는 게시글입니다.", HttpStatus.NOT_FOUND),
@@ -29,14 +29,13 @@ public enum ErrorCode {
     TICKET_PRICE_EXCEEDED("POST_004", "양도 가격은 정가를 초과할 수 없습니다.", HttpStatus.BAD_REQUEST),
     INVALID_BOARD_TYPE("POST_005", "해당 게시판 타입에 유효하지 않은 요청입니다.", HttpStatus.BAD_REQUEST),
     CREW_FULL("POST_006", "모집 인원이 가득 찼습니다.", HttpStatus.BAD_REQUEST),
-    ALREADY_PARTICIPATING("POST_007", "이미 참여 중인 크루입니다.", HttpStatus.BAD_REQUEST),
+    ALREADY_PARTICIPATING("POST_007", "이미 참여 중인 모임입니다.", HttpStatus.BAD_REQUEST),
 
     // 양도 거래
     TRANSFER_NOT_FOUND("TRF_001", "존재하지 않는 거래입니다.", HttpStatus.NOT_FOUND),
     TRANSFER_INVALID_STATUS("TRF_002", "현재 거래 상태에서 해당 작업을 수행할 수 없습니다.", HttpStatus.BAD_REQUEST),
     TRANSFER_ALREADY_EXISTS("TRF_003", "이미 거래가 진행 중인 게시글입니다.", HttpStatus.CONFLICT),
     TRANSFER_SELF_NOT_ALLOWED("TRF_004", "자신의 게시글에는 양도 요청할 수 없습니다.", HttpStatus.BAD_REQUEST),
-
     TRANSFER_PAYMENT_NOT_ALLOWED("TRF_005", "결제는 REQUESTED 상태에서만 가능합니다.", HttpStatus.BAD_REQUEST),
     TRANSFER_TICKET_SEND_NOT_ALLOWED("TRF_006", "결제 완료 후에만 티켓 전달 처리가 가능합니다.", HttpStatus.BAD_REQUEST),
     TRANSFER_CONFIRM_NOT_ALLOWED("TRF_007", "인수 확정은 결제 완료 이후 단계에서만 가능합니다.", HttpStatus.BAD_REQUEST),
@@ -54,7 +53,8 @@ public enum ErrorCode {
 
     // 서버
     INTERNAL_SERVER_ERROR("SERVER_001", "서버 내부 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
-    VALIDATION_ERROR("SERVER_002", "입력값이 올바르지 않습니다.", HttpStatus.BAD_REQUEST);
+    VALIDATION_ERROR("SERVER_002", "입력값이 올바르지 않습니다.", HttpStatus.BAD_REQUEST),
+    ADMIN_UNSUPPORTED_ROW_TYPE("SERVER_003", "관리자 페이지 처리 중 지원하지 않는 데이터 형식이 감지되었습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final String code;
     private final String message;

@@ -148,4 +148,16 @@ public class Member {
         this.transferAlert = transferAlert;
         this.mannerAlert = mannerAlert;
     }
+
+    public void deactivate() {
+        this.isActive = false;
+    }
+
+    public void activate() {
+        this.isActive = true;
+    }
+
+    public void changeRole(MemberRole role) {
+        this.role = role;
+    }
 }

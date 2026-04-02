@@ -16,10 +16,12 @@ spring:
         format_sql: true
         default_batch_fetch_size: 100
 
-  security:
-    user:
-      name: admin
-      password: admin
+logging:
+  level:
+    org.hibernate.SQL: off
+    org.hibernate.orm.jdbc.bind: off
+    org.springframework.jdbc.core: off
+    com.fullcount.service.AdminService: debug
 
 springdoc:
   swagger-ui:

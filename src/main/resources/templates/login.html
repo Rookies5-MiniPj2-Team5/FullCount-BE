@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 로그인</title>
+    <style>
+        :root {
+            --bg: #f4efe6;
+            --ink: #1f2933;
+            --muted: #667085;
+            --panel: rgba(255, 252, 246, 0.92);
+            --line: #e6dac4;
+            --navy: #14213d;
+            --accent: #d77a61;
+            --danger: #b42318;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            background:
+                radial-gradient(circle at top left, rgba(215, 122, 97, 0.22), transparent 30%),
+                radial-gradient(circle at bottom right, rgba(20, 33, 61, 0.18), transparent 26%),
+                linear-gradient(180deg, #f8f3ea 0%, var(--bg) 100%);
+            color: var(--ink);
+            font-family: "Segoe UI", "Apple SD Gothic Neo", sans-serif;
+        }
+
+        .login-shell {
+            width: min(960px, 100%);
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            background: var(--panel);
+            border: 1px solid rgba(230, 218, 196, 0.95);
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: 0 30px 70px rgba(20, 33, 61, 0.14);
+        }
+
+        .hero {
+            padding: 48px;
+            background: linear-gradient(160deg, rgba(20, 33, 61, 0.96), rgba(35, 58, 101, 0.92));
+            color: #fdf8f1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 24px;
+        }
+
+        .hero h1 {
+            margin: 0 0 12px;
+            font-size: 2.3rem;
+            line-height: 1.1;
+        }
+
+        .hero p {
+            margin: 0;
+            color: rgba(253, 248, 241, 0.78);
+            line-height: 1.7;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            width: fit-content;
+            padding: 9px 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.12);
+            color: #ffd8cf;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+
+        .hero-note {
+            padding-top: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+            font-size: 0.95rem;
+            color: rgba(253, 248, 241, 0.78);
+        }
+
+        .login-panel {
+            padding: 42px 36px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .login-panel h2 {
+            margin: 0 0 8px;
+            font-size: 1.65rem;
+        }
+
+        .login-panel p {
+            margin: 0 0 24px;
+            color: var(--muted);
+        }
+
+        .field {
+            margin-bottom: 14px;
+        }
+
+        .field label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.92rem;
+            font-weight: 700;
+        }
+
+        .field input {
+            width: 100%;
+            padding: 14px 15px;
+            border-radius: 16px;
+            border: 1px solid var(--line);
+            background: #fff;
+            font-size: 1rem;
+        }
+
+        .field input:focus {
+            outline: 2px solid rgba(215, 122, 97, 0.2);
+            border-color: var(--accent);
+        }
+
+        .btn {
+            width: 100%;
+            margin-top: 8px;
+            border: 0;
+            border-radius: 16px;
+            padding: 14px 16px;
+            background: var(--accent);
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .alert {
+            margin-bottom: 16px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            font-size: 0.92rem;
+            font-weight: 600;
+        }
+
+        .alert-error {
+            background: #fde8e6;
+            color: var(--danger);
+        }
+
+        .hint {
+            margin-top: 18px;
+            color: var(--muted);
+            font-size: 0.88rem;
+            line-height: 1.6;
+        }
+
+        .hint strong {
+            color: var(--ink);
+        }
+
+        @media (max-width: 860px) {
+            .login-shell {
+                grid-template-columns: 1fr;
+            }
+
+            .hero,
+            .login-panel {
+                padding: 28px 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="login-shell">
+    <section class="hero">
+        <div>
+            <div class="hero-badge">FULL COUNT ADMIN</div>
+            <h1>운영 권한이 있는 계정만 접근할 수 있습니다.</h1>
+            <p>회원 관리, 게시글 정리, 양도 거래 분쟁 처리를 위한 관리자 전용 로그인 화면입니다.</p>
+        </div>
+        <div class="hero-note">
+            로그인은 DB의 `member` 테이블 계정을 사용합니다.
+            `ROLE_ADMIN` 권한이 있어야 `/admin/**` 접근이 가능합니다.
+        </div>
+    </section>
+
+    <section class="login-panel">
+        <h2>관리자 로그인</h2>
+        <p>이메일과 비밀번호를 입력하세요.</p>
+
+        <div th:if="${param.error}" class="alert alert-error">
+            이메일 또는 비밀번호가 올바르지 않거나 관리자 권한이 없습니다.
+        </div>
+        <div th:if="${param.logout}" class="alert">
+            로그아웃되었습니다.
+        </div>
+
+        <form method="post" th:action="@{/login}">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <div class="field">
+                <label for="username">이메일</label>
+                <input id="username" name="username" type="text" autocomplete="username" placeholder="admin22@fullcount.com" required>
+            </div>
+            <div class="field">
+                <label for="password">비밀번호</label>
+                <input id="password" name="password" type="password" autocomplete="current-password" placeholder="비밀번호 입력" required>
+            </div>
+            <button class="btn" type="submit">로그인</button>
+        </form>
+    </section>
+</div>
+</body>
+</html>

@@ -5,5 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
+    boolean existsByMemberId(Long memberId);
     List<Attendance> findAllByMemberIdOrderByMatchDateDesc(Long memberId);
 }

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title}">관리자 페이지</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+<header th:fragment="nav(activeMenu)" class="admin-nav">
+    <div class="admin-nav__inner">
+        <a class="admin-brand" th:href="@{/admin/dashboard}">FULL <span>COUNT</span></a>
+        <nav class="admin-menu">
+            <a th:href="@{/admin/dashboard}" th:classappend="${activeMenu == 'dashboard'} ? 'is-active'">대시보드</a>
+            <a th:href="@{/admin/members}" th:classappend="${activeMenu == 'members'} ? 'is-active'">회원 관리</a>
+            <a th:href="@{/admin/posts}" th:classappend="${activeMenu == 'posts'} ? 'is-active'">게시글 관리</a>
+            <a th:href="@{/admin/transfers}" th:classappend="${activeMenu == 'transfers'} ? 'is-active'">양도 관리</a>
+        </nav>
+        <div class="admin-badge">ADMIN CONTROL</div>
+    </div>
+</header>
+
+<div th:fragment="alerts">
+    <div th:if="${message}" class="alert-box alert-success" th:text="${message}"></div>
+    <div th:if="${error}" class="alert-box alert-danger" th:text="${error}"></div>
+</div>
+</body>
+</html>
