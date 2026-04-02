@@ -16,6 +16,8 @@ public class AttendanceDto {
         private LocalDate date;
         private MatchResult result;
         private MultipartFile image;
+
+        private String memo; //요청받을 메모
     }
 
     // 프론트로 보내주는 데이터
@@ -26,5 +28,7 @@ public class AttendanceDto {
         private LocalDate date;
         private MatchResult result;
         private String imageUrl;
+
+        private String memo; //응답할 메모
     }
 }

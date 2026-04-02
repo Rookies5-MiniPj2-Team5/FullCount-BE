@@ -7,7 +7,7 @@ import com.fullcount.dto.AttendanceDto;
 import com.fullcount.repository.AttendanceRepository;
 import com.fullcount.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value; // 🌟 필수 추가
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,7 +25,6 @@ public class AttendanceService {
     private final AttendanceRepository attendanceRepository;
     private final MemberRepository memberRepository;
 
-    // 🌟 수정된 부분: application.yml에서 file.upload-dir 값을 읽어옵니다.
     @Value("${file.upload-dir}")
     private String uploadDir;
 
@@ -39,7 +38,6 @@ public class AttendanceService {
 
         if (imageFile != null && !imageFile.isEmpty()) {
             String fileName = UUID.randomUUID() + "_" + imageFile.getOriginalFilename();
-            // 🌟 하드코딩된 UPLOAD_DIR 대신 yml에서 가져온 uploadDir 변수를 사용합니다.
             File dest = new File(uploadDir + fileName);
 
             if (!dest.getParentFile().exists()) {
@@ -50,20 +48,24 @@ public class AttendanceService {
             savedImageUrl = "/uploads/" + fileName;
         }
 
+        //엔티티 생성 시 memo 데이터 포함
         Attendance attendance = Attendance.builder()
                 .member(member)
                 .matchDate(request.getDate())
                 .result(request.getResult())
                 .imageUrl(savedImageUrl)
+                .memo(request.getMemo()) //메모 저장 로직 추가
                 .build();
 
         Attendance savedAttendance = attendanceRepository.save(attendance);
 
+        //수정된 부분: 응답 DTO 생성 시 memo 데이터 포함
         return AttendanceDto.Response.builder()
                 .id(savedAttendance.getId())
                 .date(savedAttendance.getMatchDate())
                 .result(savedAttendance.getResult())
                 .imageUrl(savedAttendance.getImageUrl())
+                .memo(savedAttendance.getMemo()) //메모 반환 로직 추가
                 .build();
     }
 
@@ -76,6 +78,7 @@ public class AttendanceService {
                         .date(a.getMatchDate())
                         .result(a.getResult())
                         .imageUrl(a.getImageUrl())
+                        .memo(a.getMemo()) //목록 조회 시 메모 반환 로직 추가
                         .build())
                 .collect(Collectors.toList());
     }
@@ -87,7 +90,6 @@ public class AttendanceService {
 
         if (attendance.getImageUrl() != null) {
             String fileName = attendance.getImageUrl().replace("/uploads/", "");
-            // 🌟 하드코딩된 UPLOAD_DIR 대신 uploadDir 사용
             File file = new File(uploadDir + fileName);
             if (file.exists()) {
                 file.delete();
