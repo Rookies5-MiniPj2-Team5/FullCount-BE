@@ -31,6 +31,7 @@ public class ChatRoomService {
     private final ChatMessageRepository chatMessageRepository;
     private final PostRepository postRepository;
     private final TransferRepository transferRepository;
+    private final MemberRepository memberRepository;
 
     // 내 채팅방 목록 조회 (Pageable 적용 -> PagedResponse 반환)
     public PagedResponse<ChatDTO.ChatRoomResponse> getMyChatRooms(Long memberId, Pageable pageable) {
@@ -116,19 +117,24 @@ public class ChatRoomService {
     private List<Member> getParticipants(ChatRoom chatRoom) {
         log.debug("채팅방 참여자 조회 시작 - roomId={}, roomType={}", chatRoom.getId(), chatRoom.getRoomType());
 
-        // 중복 제거를 위해 Set 사용
         Set<Member> participants = new HashSet<>();
 
-        // 방장은 항상 포함
-        participants.add(chatRoom.getPost().getAuthor());
-
-        if (chatRoom.getRoomType() == ChatRoomType.ONE_ON_ONE) {
-            // 1:1 채팅: 양도 데이터에서 구매자 확인
-            transferRepository.findByPostId(chatRoom.getPost().getId())
-                    .ifPresent(t -> { if (t.getBuyer() != null) participants.add(t.getBuyer()); });
+        if (chatRoom.getRoomType() == ChatRoomType.ONE_ON_ONE_DIRECT) {
+            // 직접 DM: initiator + receiver
+            if (chatRoom.getInitiator() != null) participants.add(chatRoom.getInitiator());
+            if (chatRoom.getReceiver()  != null) participants.add(chatRoom.getReceiver());
         } else {
-            // 그룹 채팅: messages 컬렉션 대신 전용 쿼리로 sender 추출 (N+1 방지)
-            participants.addAll(chatMessageRepository.findDistinctSendersByRoomId(chatRoom.getId()));
+            // 게시글 기반 채팅방: 방장은 항상 포함
+            participants.add(chatRoom.getPost().getAuthor());
+
+            if (chatRoom.getRoomType() == ChatRoomType.ONE_ON_ONE) {
+                // 1:1 채팅: 양도 데이터에서 구매자 확인
+                transferRepository.findByPostId(chatRoom.getPost().getId())
+                        .ifPresent(t -> { if (t.getBuyer() != null) participants.add(t.getBuyer()); });
+            } else {
+                // 그룹 채팅: messages 컬렉션 대신 전용 쿼리로 sender 추출 (N+1 방지)
+                participants.addAll(chatMessageRepository.findDistinctSendersByRoomId(chatRoom.getId()));
+            }
         }
 
         log.debug("채팅방 참여자 조회 완료 - roomId={}, 참여자 수={}", chatRoom.getId(), participants.size());
@@ -159,5 +165,46 @@ public class ChatRoomService {
 
         log.info("채팅방 생성 완료 - memberId={}, postId={}, roomId={}", memberId, postId, roomId);
         return roomId;
+    }
+
+    // ── 직접 DM 채팅방 생성 (userId 기반) ──
+
+    /**
+     * 발신자(senderId)와 수신자(targetUserId) 간 1:1 DM 방을 반환합니다.
+     * 이미 존재하면 기존 방을 반환하고, 없으면 새로 생성합니다.
+     *
+     * @return 채팅방 ID
+     */
+    @Transactional
+    public Long createOrFindDirectDm(Long senderId, Long targetUserId) {
+        log.info("직접 DM 방 조회/생성 시작 - senderId={}, targetUserId={}", senderId, targetUserId);
+
+        if (senderId.equals(targetUserId)) {
+            throw new BusinessException(ErrorCode.ACCESS_DENIED);
+        }
+
+        // 1. 기존 방 확인 (중복 방지)
+        return chatRoomRepository
+                .findDirectDmBetween(senderId, targetUserId, ChatRoomType.ONE_ON_ONE_DIRECT)
+                .map(room -> {
+                    log.info("기존 직접 DM 방 반환 - roomId={}", room.getId());
+                    return room.getId();
+                })
+                .orElseGet(() -> {
+                    // 2. 없으면 두 유저 조회 후 신규 생성
+                    Member initiator = memberRepository.findById(senderId)
+                            .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+                    Member receiver = memberRepository.findById(targetUserId)
+                            .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
+                    ChatRoom newRoom = ChatRoom.builder()
+                            .roomType(ChatRoomType.ONE_ON_ONE_DIRECT)
+                            .initiator(initiator)
+                            .receiver(receiver)
+                            .build();
+                    Long newRoomId = chatRoomRepository.save(newRoom).getId();
+                    log.info("새 직접 DM 방 생성 완료 - roomId={}", newRoomId);
+                    return newRoomId;
+                });
     }
 }

@@ -43,14 +43,26 @@ public class ChatMapper {
 
     // ChatRoom 리스트 항목 변환
     public static ChatDTO.ChatRoomResponse toChatRoomResponse(ChatRoom room, ChatMessage lastMessage) {
+        // ONE_ON_ONE_DIRECT 방은 post가 없으므로 initiator/receiver 닉네임으로 title 대체
+        String title = (room.getPost() != null)
+                ? room.getPost().getTitle()
+                : buildDirectDmTitle(room);
+
         return ChatDTO.ChatRoomResponse.builder()
                 .chatRoomId(room.getId())
                 .type(room.getRoomType())
-                .title(room.getPost().getTitle())
+                .title(title)
                 .lastMessage(lastMessage != null ? lastMessage.getContent() : null)
                 .lastMessageAt(lastMessage != null ? extractTimestamp(lastMessage) : null)
                 .unreadCount(0) // 미구현 (0으로 초기화)
                 .build();
+    }
+
+    /** 직접 DM 방의 타이틀: "initiator닉네임 ↔ receiver닉네임" */
+    private static String buildDirectDmTitle(ChatRoom room) {
+        String a = room.getInitiator() != null ? room.getInitiator().getNickname() : "?";
+        String b = room.getReceiver()  != null ? room.getReceiver().getNickname()  : "?";
+        return a + " ↔ " + b;
     }
 
     // ChatRoom 상세 응답 변환

@@ -7,7 +7,16 @@ import java.util.List;
 
 public class ChatDTO {
 
-    // ── 메시지 페이로드 ──
+    /** 직접 DM 방 생성 요청 (userId 기반) */
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DirectDmRequest {
+        @jakarta.validation.constraints.NotNull(message = "대화 상대 userId를 입력해주세요.")
+        private Long targetUserId;
+    }
+
+
     @ToString
     @Builder
     @Getter

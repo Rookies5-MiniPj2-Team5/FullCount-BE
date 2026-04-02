@@ -51,6 +51,19 @@ public class ChatRoomController {
                 .body(ChatMapper.toChatRoomResponse(roomId));
     }
 
+    @Operation(
+            summary = "유저 간 1:1 DM 채팅방 생성 (티켓 연락하기)",
+            description = "targetUserId를 경로 변수로 받아 발신자와의 1:1 DM 방을 생성하거나 기존 방을 반환합니다. 중복 생성을 방지합니다.")
+    @PostMapping("/dm/user/{targetUserId}")
+    public ResponseEntity<ChatDTO.ChatRoomResponse> createDirectDm(
+            @AuthenticationPrincipal Long memberId,
+            @PathVariable Long targetUserId) {
+
+        Long roomId = chatRoomService.createOrFindDirectDm(memberId, targetUserId);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ChatMapper.toChatRoomResponse(roomId));
+    }
+
     @Operation(summary = "채팅방 상세 조회", description = "특정 채팅방의 정보와 참여자 목록을 조회합니다.")
     @GetMapping("/{roomId}")
     public ResponseEntity<ChatDTO.ChatRoomDetailResponse> getChatRoomDetail(

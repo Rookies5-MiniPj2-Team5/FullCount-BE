@@ -31,6 +31,9 @@ public enum ErrorCode {
     CREW_FULL("POST_006", "모집 인원이 가득 찼습니다.", HttpStatus.BAD_REQUEST),
     ALREADY_PARTICIPATING("POST_007", "이미 참여 중인 크루입니다.", HttpStatus.BAD_REQUEST),
 
+    // 티켓 양도 게시판
+    TICKET_NOT_FOUND("TCK_001", "존재하지 않는 티켓 양도 게시글입니다.", HttpStatus.NOT_FOUND),
+
     // 양도 거래
     TRANSFER_NOT_FOUND("TRF_001", "존재하지 않는 거래입니다.", HttpStatus.NOT_FOUND),
     TRANSFER_INVALID_STATUS("TRF_002", "현재 거래 상태에서 해당 작업을 수행할 수 없습니다.", HttpStatus.BAD_REQUEST),
