@@ -146,7 +146,10 @@ public class AuthService {
 
         log.info("토큰 발급 완료 - memberId: {}, email: {}, role: {}", memberId, email, role.name());
 
-        return new AuthDto.TokenResponse(accessToken, refreshToken);
+        return AuthDto.TokenResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
     }
 
     /**

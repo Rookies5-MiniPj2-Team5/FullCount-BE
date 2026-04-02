@@ -22,7 +22,7 @@ public class TransferController {
 
     @Operation(summary = "양도 요청 + 1:1 채팅방 자동 생성")
     @PostMapping("/{postId}/request")
-    public ResponseEntity<TransferDto.TransferResponse> requestTransfer(
+    public ResponseEntity<TransferDto.TransferRequestResponse> requestTransfer(
             @PathVariable Long postId,
             @AuthenticationPrincipal Long memberId) {
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -31,7 +31,7 @@ public class TransferController {
 
     @Operation(summary = "에스크로 결제 완료 처리")
     @PostMapping("/{transferId}/pay")
-    public ResponseEntity<TransferDto.TransferResponse> payEscrow(
+    public ResponseEntity<TransferDto.TransferStatusResponse> payEscrow(
             @PathVariable Long transferId,
             @AuthenticationPrincipal Long memberId) {
         return ResponseEntity.ok(transferService.payEscrow(transferId, memberId));
@@ -39,7 +39,7 @@ public class TransferController {
 
     @Operation(summary = "티켓 전달 완료 확인 (양도자)")
     @PostMapping("/{transferId}/ticket-sent")
-    public ResponseEntity<TransferDto.TransferResponse> markTicketSent(
+    public ResponseEntity<TransferDto.TransferStatusResponse> markTicketSent(
             @PathVariable Long transferId,
             @AuthenticationPrincipal Long memberId) {
         return ResponseEntity.ok(transferService.markTicketSent(transferId, memberId));
@@ -47,7 +47,7 @@ public class TransferController {
 
     @Operation(summary = "인수 확정 + 정산 완료 (양수자)")
     @PostMapping("/{transferId}/confirm")
-    public ResponseEntity<TransferDto.TransferResponse> confirmTransfer(
+    public ResponseEntity<TransferDto.TransferStatusResponse> confirmTransfer(
             @PathVariable Long transferId,
             @AuthenticationPrincipal Long memberId) {
         return ResponseEntity.ok(transferService.confirmTransfer(transferId, memberId));
@@ -55,7 +55,7 @@ public class TransferController {
 
     @Operation(summary = "거래 취소")
     @PostMapping("/{transferId}/cancel")
-    public ResponseEntity<TransferDto.TransferResponse> cancelTransfer(
+    public ResponseEntity<TransferDto.TransferStatusResponse> cancelTransfer(
             @PathVariable Long transferId,
             @AuthenticationPrincipal Long memberId) {
         return ResponseEntity.ok(transferService.cancelTransfer(transferId, memberId));

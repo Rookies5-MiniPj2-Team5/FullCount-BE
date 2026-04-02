@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -56,14 +57,10 @@ public class AuthDto {
     }
 
     @Getter
+    @Builder
     public static class TokenResponse {
         private final String accessToken;
         private final String refreshToken;
         private final String tokenType = "Bearer";
-
-        public TokenResponse(String accessToken, String refreshToken) {
-            this.accessToken = accessToken;
-            this.refreshToken = refreshToken;
-        }
     }
 }
