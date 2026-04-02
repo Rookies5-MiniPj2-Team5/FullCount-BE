@@ -14,7 +14,6 @@ public class AttendanceDto {
     public static class CreateRequest {
         @DateTimeFormat(pattern = "yyyy-MM-dd")
         private LocalDate date;
-
         private MatchResult result;
         private MultipartFile image;
     }
