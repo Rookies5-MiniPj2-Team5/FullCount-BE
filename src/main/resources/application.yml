@@ -33,6 +33,10 @@ app:
     access-token-expiry: 3600000       # 1시간
     refresh-token-expiry: 604800000    # 7일
 
+# 🌟 추가된 부분: 파일 업로드 경로를 전역 변수로 설정
+file:
+  upload-dir: ${user.dir}/uploads/
+
 ---
 spring:
   config:
