@@ -9,9 +9,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
+    boolean existsByAuthorId(Long authorId);
 
     /**
      * 게시판 타입별 게시글 목록 (팀, 상태 필터 추가)
@@ -98,4 +100,56 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             "LEFT JOIN FETCH pc.member " +
             "WHERE p.id = :postId")
     Optional<Post> findByIdWithParticipants(@Param("postId") Long postId);
+
+    @Query(value = "SELECT p.id FROM Post p " +
+            "JOIN p.author a " +
+            "WHERE (:boardType IS NULL OR p.boardType = :boardType) " +
+            "AND (:status IS NULL OR p.status = :status) " +
+            "AND (:keyword IS NULL OR LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "   OR LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "   OR LOWER(a.nickname) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+            "ORDER BY p.createdAt DESC",
+            countQuery = "SELECT COUNT(p) FROM Post p " +
+                    "JOIN p.author a " +
+                    "WHERE (:boardType IS NULL OR p.boardType = :boardType) " +
+                    "AND (:status IS NULL OR p.status = :status) " +
+                    "AND (:keyword IS NULL OR LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+                    "   OR LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+                    "   OR LOWER(a.nickname) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    Page<Long> searchIdsForAdmin(@Param("keyword") String keyword,
+                                 @Param("boardType") BoardType boardType,
+                                 @Param("status") PostStatus status,
+                                 Pageable pageable);
+
+    @Query("SELECT p FROM Post p " +
+            "JOIN FETCH p.author a " +
+            "LEFT JOIN FETCH a.team " +
+            "LEFT JOIN FETCH p.homeTeam " +
+            "LEFT JOIN FETCH p.awayTeam " +
+            "LEFT JOIN FETCH p.supportTeam " +
+            "WHERE p.id IN :ids")
+    List<Post> findAllForAdminByIdIn(@Param("ids") List<Long> ids);
+
+    @Query("SELECT p FROM Post p " +
+            "JOIN FETCH p.author a " +
+            "LEFT JOIN FETCH a.team " +
+            "LEFT JOIN FETCH p.homeTeam " +
+            "LEFT JOIN FETCH p.awayTeam " +
+            "LEFT JOIN FETCH p.supportTeam " +
+            "ORDER BY p.createdAt DESC")
+    List<Post> findRecentForAdmin(Pageable pageable);
+
+    @Query("SELECT COUNT(p) AS totalCount, " +
+            "SUM(CASE WHEN p.status = com.fullcount.domain.PostStatus.OPEN THEN 1 ELSE 0 END) AS openCount, " +
+            "SUM(CASE WHEN p.status = com.fullcount.domain.PostStatus.RESERVED THEN 1 ELSE 0 END) AS reservedCount, " +
+            "SUM(CASE WHEN p.status = com.fullcount.domain.PostStatus.CLOSED THEN 1 ELSE 0 END) AS closedCount " +
+            "FROM Post p")
+    PostDashboardSummary fetchDashboardSummary();
+
+    interface PostDashboardSummary {
+        long getTotalCount();
+        long getOpenCount();
+        long getReservedCount();
+        long getClosedCount();
+    }
 }
