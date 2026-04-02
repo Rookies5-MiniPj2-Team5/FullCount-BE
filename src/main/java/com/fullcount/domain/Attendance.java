@@ -25,4 +25,7 @@ public class Attendance {
     private MatchResult result; // 승패 결과
 
     private String imageUrl; // 로컬에 저장된 이미지 접근 주소 (예: /uploads/images/xxx.jpg)
+
+    @Column(columnDefinition = "TEXT")
+    private String memo;
 }
