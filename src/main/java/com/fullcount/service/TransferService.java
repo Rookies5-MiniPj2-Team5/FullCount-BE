@@ -62,7 +62,7 @@ public class TransferService {
         Long chatRoomId = chatRoomRepository.findByPostId(postId)
                 .map(ChatRoom::getId)
                 .orElseGet(() -> chatRoomRepository.save(
-                        ChatRoomMapper.toEntity(post, ChatRoomType.ONE_ON_ONE)).getId());
+                        ChatRoomMapper.toEntity(ChatRoomType.ONE_ON_ONE, post, post.getAuthor(), buyer)).getId());
 
         log.info("양도 요청 완료 - transferId={}, chatRoomId={}, sellerId={}, buyerId={}",
                 transfer.getId(), chatRoomId, post.getAuthor().getId(), buyerId);

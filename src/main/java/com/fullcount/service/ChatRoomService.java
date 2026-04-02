@@ -157,7 +157,7 @@ public class ChatRoomService {
         Long roomId = chatRoomRepository.findByPostId(postId)
                 .map(ChatRoom::getId)
                 .orElseGet(() -> {
-                    ChatRoom newRoom = ChatRoomMapper.toEntity(post, chatRoomType);
+                    ChatRoom newRoom = ChatRoomMapper.toEntity(chatRoomType, post, post.getAuthor(), post.getAuthor());
                     Long newRoomId = chatRoomRepository.save(newRoom).getId();
                     log.info("새 채팅방 생성 완료 - roomId={}", newRoomId);
                     return newRoomId;
@@ -197,11 +197,7 @@ public class ChatRoomService {
                     Member receiver = memberRepository.findById(targetUserId)
                             .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
-                    ChatRoom newRoom = ChatRoom.builder()
-                            .roomType(ChatRoomType.ONE_ON_ONE_DIRECT)
-                            .initiator(initiator)
-                            .receiver(receiver)
-                            .build();
+                    ChatRoom newRoom = ChatRoomMapper.toEntity(ChatRoomType.ONE_ON_ONE_DIRECT, null, initiator, receiver);
                     Long newRoomId = chatRoomRepository.save(newRoom).getId();
                     log.info("새 직접 DM 방 생성 완료 - roomId={}", newRoomId);
                     return newRoomId;

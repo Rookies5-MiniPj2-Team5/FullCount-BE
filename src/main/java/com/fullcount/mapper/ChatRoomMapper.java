@@ -1,16 +1,22 @@
 package com.fullcount.mapper;
 
-import com.fullcount.domain.*;
-import org.springframework.stereotype.Component;
+import com.fullcount.domain.ChatRoom;
+import com.fullcount.domain.ChatRoomType;
+import com.fullcount.domain.Member;
+import com.fullcount.domain.Post;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
-@Component
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ChatRoomMapper {
 
-    /** 1:1 채팅방 엔티티 생성 */
-    public static ChatRoom toEntity(Post post, ChatRoomType chatRoomType) {
+    /** 채팅방 공통 생성 */
+    public static ChatRoom toEntity(ChatRoomType chatRoomType, Post post, Member initiator, Member receiver) {
         return ChatRoom.builder()
                 .post(post)
                 .roomType(chatRoomType)
+                .initiator(initiator)
+                .receiver(receiver)
                 .build();
     }
 }
