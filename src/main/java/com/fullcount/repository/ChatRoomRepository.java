@@ -36,25 +36,35 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
     @Query(value = "SELECT DISTINCT c FROM ChatRoom c " +
             "LEFT JOIN FETCH c.post p " +
             "LEFT JOIN FETCH p.author a " +
-            "WHERE (c.roomType <> com.fullcount.domain.ChatRoomType.ONE_ON_ONE_DIRECT " +
-            "  AND (a.id = :memberId OR EXISTS (SELECT t FROM Transfer t WHERE t.post.id = p.id AND t.buyer.id = :memberId))) " +
-            "OR (c.roomType = com.fullcount.domain.ChatRoomType.ONE_ON_ONE_DIRECT " +
-            "  AND (c.initiator.id = :memberId OR c.receiver.id = :memberId))",
+            "WHERE ((c.roomType = com.fullcount.domain.ChatRoomType.ONE_ON_ONE " +
+            "      OR c.roomType = com.fullcount.domain.ChatRoomType.ONE_ON_ONE_DIRECT) " +
+            "   AND (c.initiator.id = :memberId OR c.receiver.id = :memberId)) " +
+            "OR ((c.roomType <> com.fullcount.domain.ChatRoomType.ONE_ON_ONE " +
+            "      AND c.roomType <> com.fullcount.domain.ChatRoomType.ONE_ON_ONE_DIRECT) " +
+            "   AND EXISTS (SELECT 1 FROM ChatRoomParticipant cp WHERE cp.chatRoom = c AND cp.member.id = :memberId))",
             countQuery = "SELECT COUNT(DISTINCT c) FROM ChatRoom c " +
-                    "LEFT JOIN c.post p " +
-                    "WHERE (c.roomType <> com.fullcount.domain.ChatRoomType.ONE_ON_ONE_DIRECT " +
-                    "  AND (p.author.id = :memberId OR EXISTS (SELECT t FROM Transfer t WHERE t.post.id = p.id AND t.buyer.id = :memberId))) " +
-                    "OR (c.roomType = com.fullcount.domain.ChatRoomType.ONE_ON_ONE_DIRECT " +
-                    "  AND (c.initiator.id = :memberId OR c.receiver.id = :memberId))")
+                    "WHERE ((c.roomType = com.fullcount.domain.ChatRoomType.ONE_ON_ONE " +
+                    "      OR c.roomType = com.fullcount.domain.ChatRoomType.ONE_ON_ONE_DIRECT) " +
+                    "   AND (c.initiator.id = :memberId OR c.receiver.id = :memberId)) " +
+                    "OR ((c.roomType <> com.fullcount.domain.ChatRoomType.ONE_ON_ONE " +
+                    "      AND c.roomType <> com.fullcount.domain.ChatRoomType.ONE_ON_ONE_DIRECT) " +
+                    "   AND EXISTS (SELECT 1 FROM ChatRoomParticipant cp WHERE cp.chatRoom = c AND cp.member.id = :memberId))")
     Page<ChatRoom> findAllByMemberId(@Param("memberId") Long memberId, Pageable pageable);
 
     @Query("SELECT DISTINCT c FROM ChatRoom c " +
-            "JOIN FETCH c.post p " +
-            "JOIN FETCH p.author a " +
-            "LEFT JOIN FETCH c.messages msg " +
-            "LEFT JOIN FETCH msg.sender " +
+            "LEFT JOIN FETCH c.post p " +
+            "LEFT JOIN FETCH p.author a " +
+            "LEFT JOIN FETCH c.participants cp " +
+            "LEFT JOIN FETCH cp.member " +
             "WHERE c.id = :roomId")
     Optional<ChatRoom> findByIdWithDetails(@Param("roomId") Long roomId);
+
+    @Query("SELECT c FROM ChatRoom c " +
+            "LEFT JOIN FETCH c.post p " +
+            "LEFT JOIN FETCH c.initiator " +
+            "LEFT JOIN FETCH c.receiver " +
+            "WHERE c.id = :roomId")
+    Optional<ChatRoom> findByIdWithSummary(@Param("roomId") Long roomId);
 
     /**
      * 채팅방 참여 권한 체크.
@@ -63,13 +73,12 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
      */
     @Query("SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END " +
             "FROM ChatRoom c " +
-            "LEFT JOIN c.post p " +
             "WHERE c.id = :roomId " +
-            "AND (c.roomType = com.fullcount.domain.ChatRoomType.ONE_ON_ONE_DIRECT " +
-            "       AND (c.initiator.id = :memberId OR c.receiver.id = :memberId) " +
-            "  OR (c.roomType <> com.fullcount.domain.ChatRoomType.ONE_ON_ONE_DIRECT " +
-            "       AND (p.author.id = :memberId " +
-            "        OR EXISTS (SELECT t FROM Transfer t WHERE t.post.id = p.id AND t.buyer.id = :memberId) " +
-            "        OR EXISTS (SELECT m FROM ChatMessage m WHERE m.chatRoom.id = :roomId AND m.sender.id = :memberId))))")
+            "AND (((c.roomType = com.fullcount.domain.ChatRoomType.ONE_ON_ONE " +
+            "        OR c.roomType = com.fullcount.domain.ChatRoomType.ONE_ON_ONE_DIRECT) " +
+            "       AND (c.initiator.id = :memberId OR c.receiver.id = :memberId)) " +
+            "  OR ((c.roomType <> com.fullcount.domain.ChatRoomType.ONE_ON_ONE " +
+            "        AND c.roomType <> com.fullcount.domain.ChatRoomType.ONE_ON_ONE_DIRECT) " +
+            "       AND EXISTS (SELECT 1 FROM ChatRoomParticipant cp WHERE cp.chatRoom = c AND cp.member.id = :memberId)))")
     boolean isParticipant(@Param("roomId") Long roomId, @Param("memberId") Long memberId);
 }

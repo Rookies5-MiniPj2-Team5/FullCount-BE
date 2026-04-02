@@ -43,9 +43,30 @@ public class ChatRoom {
 
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    private List<ChatRoomParticipant> participants = new ArrayList<>();
+
+    @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<ChatMessage> messages = new ArrayList<>();
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+
+    public void addParticipant(Member member) {
+        if (member == null) {
+            return;
+        }
+
+        boolean alreadyJoined = participants.stream()
+                .anyMatch(participant -> participant.getMember().getId().equals(member.getId()));
+        if (alreadyJoined) {
+            return;
+        }
+
+        participants.add(ChatRoomParticipant.builder()
+                .chatRoom(this)
+                .member(member)
+                .build());
+    }
 }
