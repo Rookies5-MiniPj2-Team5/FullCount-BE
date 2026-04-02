@@ -103,7 +103,7 @@ public class SecurityConfig {
     public SecurityFilterChain webFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/login", "/signup", "/css/**", "/js/**", "/images/**", "/error").permitAll()
+                        .requestMatchers("/", "/login", "/signup", "/css/**", "/js/**", "/images/**", "/uploads/**", "/error").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/ws", "/ws/**", "/ws-test", "/ws-test/**").permitAll()

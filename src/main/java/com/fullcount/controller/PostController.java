@@ -34,7 +34,7 @@ public class PostController {
     @GetMapping
     public ResponseEntity<PagedResponse<PostDto.PostResponse>> getPosts(
             @RequestParam(defaultValue = "CREW") BoardType boardType,
-            @RequestParam(required = false) Long teamId, // 팀 선택 탭
+            @RequestParam(required = false) String teamId, // 팀 선택 탭
             @RequestParam(required = false) PostStatus status, // 모집 중 / 마감 필터
             @ParameterObject @PageableDefault(size = 9, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
@@ -44,7 +44,7 @@ public class PostController {
     @Operation(summary = "팀 전용 게시글 목록")
     @GetMapping("/team/{teamId}")
     public ResponseEntity<PagedResponse<PostDto.PostResponse>> getTeamPosts(
-            @PathVariable Long teamId,
+            @PathVariable String teamId,
             @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
         return ResponseEntity.ok(postService.getTeamPosts(teamId, pageable));
     }
