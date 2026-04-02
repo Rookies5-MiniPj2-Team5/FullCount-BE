@@ -4,7 +4,6 @@ import com.fullcount.domain.ChatRoomType;
 import com.fullcount.dto.ChatDTO;
 import com.fullcount.dto.common.CursorResponse;
 import com.fullcount.dto.common.PagedResponse;
-import com.fullcount.mapper.ChatMapper;
 import com.fullcount.service.ChatRoomService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -39,16 +38,16 @@ public class ChatRoomController {
         return ResponseEntity.ok(chatRoomService.getMyChatRooms(memberId, pageable));
     }
 
-    @Operation(summary = "그룹 채팅방 생성 (티켓 양도 채팅방 생성은 양도 요청 API 실행)", description = "동행/크루 모집 게시글에 대한 그룹 채팅방 생성 (티켓 양도 채팅방 생성은 양도 요청 API 실행)")
+    @Operation(summary = "그룹 채팅방 생성", description = "메이트/크루 모집 게시글에 대한 그룹 채팅방 생성 ")
     @PostMapping
     public ResponseEntity<ChatDTO.ChatRoomResponse> createGroupChatRoom(
             @AuthenticationPrincipal Long memberId,
             @RequestParam Long postId,
             @RequestParam ChatRoomType type) {
 
-        Long roomId = chatRoomService.createChatRoom(memberId, postId, type);
+        Long roomId = chatRoomService.createGroupChatRoom(memberId, postId, type);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ChatMapper.toChatRoomResponse(roomId));
+                .body(chatRoomService.getChatRoomResponse(roomId));
     }
 
     @Operation(
@@ -61,7 +60,7 @@ public class ChatRoomController {
 
         Long roomId = chatRoomService.createOrFindDirectDm(memberId, targetUserId);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ChatMapper.toChatRoomResponse(roomId));
+                .body(chatRoomService.getChatRoomResponse(roomId));
     }
 
     @Operation(summary = "채팅방 상세 조회", description = "특정 채팅방의 정보와 참여자 목록을 조회합니다.")
