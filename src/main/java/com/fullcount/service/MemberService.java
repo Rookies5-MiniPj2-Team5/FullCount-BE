@@ -52,10 +52,24 @@ public class MemberService {
         Member member = memberRepository.findByIdWithTeam(memberId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
-        Team newTeam = teamRepository.findById(req.getTeamId())
-                .orElseThrow(() -> new BusinessException(ErrorCode.TEAM_NOT_FOUND));
+        Team newTeam = findTeam(req.getTeamId());
 
         member.changeTeam(newTeam);
+    }
+
+    private Team findTeam(String identifier) {
+        if (identifier == null || identifier.isBlank()) {
+            throw new BusinessException(ErrorCode.TEAM_NOT_FOUND);
+        }
+
+        try {
+            Long id = Long.parseLong(identifier);
+            return teamRepository.findById(id)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.TEAM_NOT_FOUND));
+        } catch (NumberFormatException e) {
+            return teamRepository.findByShortName(identifier)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.TEAM_NOT_FOUND));
+        }
     }
 
     @Transactional

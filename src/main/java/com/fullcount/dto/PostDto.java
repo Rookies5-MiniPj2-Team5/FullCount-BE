@@ -52,10 +52,10 @@ public class PostDto {
         private LocalDate matchDate;
 
         @NotNull(message = "홈 팀 ID는 필수입니다.")
-        private Long homeTeamId;
+        private String homeTeamId;
 
         @NotNull(message = "어웨이 팀 ID는 필수입니다.")
-        private Long awayTeamId;
+        private String awayTeamId;
     }
 
     /** 2. 직관 크루 등록 요청 */
@@ -65,7 +65,7 @@ public class PostDto {
     @Builder
     public static class CreateCrewRequest extends CreatePostRequest {
         @NotNull(message = "응원팀 설정은 필수입니다.")
-        private Long supportTeamId;
+        private String supportTeamId;
 
         @NotNull(message = "모집 인원을 설정해주세요.")
         @Min(value = 2, message = "최소 2명 이상 모집해야 합니다.")
@@ -101,10 +101,10 @@ public class PostDto {
         private LocalDate matchDate;
 
         @NotNull(message = "홈 팀 ID는 필수입니다.")
-        private Long homeTeamId;
+        private String homeTeamId;
 
         @NotNull(message = "어웨이 팀 ID는 필수입니다.")
-        private Long awayTeamId;
+        private String awayTeamId;
 
         private String seatArea;
 

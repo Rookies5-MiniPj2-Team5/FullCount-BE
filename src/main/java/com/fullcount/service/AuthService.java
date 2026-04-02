@@ -50,14 +50,28 @@ public class AuthService {
             throw new BusinessException(ErrorCode.DUPLICATE_NICKNAME);
         }
 
-        Team team = teamRepository.findById(req.getTeamId())
-                .orElseThrow(() -> new BusinessException(ErrorCode.TEAM_NOT_FOUND));
+        Team team = findTeam(req.getTeamId());
 
         String encodedPassword = passwordEncoder.encode(req.getPassword());
 
         Member savedMember = memberRepository.save(MemberMapper.toMember(req, team, encodedPassword));
 
         log.info("회원가입 완료 - memberId: {}, email: {}, teamId: {}", savedMember.getId(), savedMember.getEmail(), team.getId());
+    }
+
+    private Team findTeam(String identifier) {
+        if (identifier == null || identifier.isBlank()) {
+            throw new BusinessException(ErrorCode.TEAM_NOT_FOUND);
+        }
+
+        try {
+            Long id = Long.parseLong(identifier);
+            return teamRepository.findById(id)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.TEAM_NOT_FOUND));
+        } catch (NumberFormatException e) {
+            return teamRepository.findByShortName(identifier)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.TEAM_NOT_FOUND));
+        }
     }
 
     /**
