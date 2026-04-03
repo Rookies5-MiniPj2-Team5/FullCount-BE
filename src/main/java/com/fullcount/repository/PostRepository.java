@@ -152,9 +152,4 @@ public interface PostRepository extends JpaRepository<Post, Long> {
         long getReservedCount();
         long getClosedCount();
     }
-
-    List<Post> findByAuthorIdOrderByCreatedAtDesc(Long authorId);
-
-    @Query("SELECT DISTINCT p FROM Post p JOIN p.participants pc WHERE pc.member.id = :memberId ORDER BY p.createdAt DESC")
-    List<Post> findPostsByParticipantId(@Param("memberId") Long memberId);
 }
