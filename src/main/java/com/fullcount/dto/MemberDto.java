@@ -60,8 +60,6 @@ public class MemberDto {
     @Schema(description = "프로필 이미지 변경 요청")
     public static class UpdateProfileImageRequest {
         @Schema(description = "이미지 URL 주소")
-        @NotBlank(message = "프로필 이미지 URL은 필수 입력값입니다.")
-        @Pattern(regexp = "^(https?://).+", message = "올바른 URL 형식이 아닙니다.")
         private String profileImageUrl;
     }
 
