@@ -42,6 +42,7 @@ public class MemberMapper {
                 .password(encodedPassword)
                 .team(team)
                 .role(MemberRole.USER)
+                .balance(10000)
                 .build();
     }
 }
