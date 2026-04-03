@@ -33,6 +33,9 @@ public class CrewParticipant {
     @Builder.Default
     private Boolean isLeader = false;
 
+    @Column(name = "apply_message", length = 300)
+    private String applyMessage;
+
     @CreatedDate
     @Column(name = "joined_at", updatable = false)
     private LocalDateTime joinedAt;

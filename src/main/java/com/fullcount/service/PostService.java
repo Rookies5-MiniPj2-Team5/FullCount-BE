@@ -47,7 +47,7 @@ public class PostService {
         } else if (req instanceof PostDto.CreateCrewRequest crewReq) {
             Team supportTeam = findTeam(crewReq.getSupportTeamId());
             post.setSupportTeam(supportTeam);
-            post.getParticipants().add(CrewParticipantMapper.toEntity(post, author, true));
+            post.getParticipants().add(CrewParticipantMapper.toEntity(post, author, true, null));
         } else if (req instanceof PostDto.CreateTransferRequest transferReq) {
             if (transferReq.getTicketPrice() < 0) {
                 throw new BusinessException(ErrorCode.TICKET_PRICE_EXCEEDED);
@@ -79,7 +79,7 @@ public class PostService {
     public List<PostDto.CrewMemberResponse> getCrewMembers(Long postId) {
         // findByIdWithAll: participants까지 fetch하므로 추가 쿼리 없음
         Post post = findPostWithAll(postId);
-        if (post.getBoardType() != BoardType.CREW) {
+        if (post.getBoardType() != BoardType.CREW && post.getBoardType() != BoardType.MATE) {
             throw new BusinessException(ErrorCode.INVALID_BOARD_TYPE);
         }
 
@@ -88,16 +88,23 @@ public class PostService {
                 .collect(Collectors.toList());
     }
 
+    // 크루 신청
     @Transactional
     public void joinCrew(Long postId, Long memberId) {
+        joinParticipant(postId, memberId, null, BoardType.CREW);
+    }
+
+    // 메이트 신청
+    @Transactional
+    public PostDto.CrewMemberResponse joinMate(Long postId, Long memberId, PostDto.JoinMateRequest req) {
+        return joinParticipant(postId, memberId, req, BoardType.MATE);
+    }
+
+    private PostDto.CrewMemberResponse joinParticipant(Long postId, Long memberId, PostDto.JoinMateRequest req, BoardType expectedBoardType) {
         // participants 순회(중복·인원 체크) → participants fetch join 전용 쿼리 사용
         Post post = findPostWithParticipants(postId);
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
-
-        if (post.getBoardType() != BoardType.CREW) {
-            throw new BusinessException(ErrorCode.INVALID_BOARD_TYPE);
-        }
 
         if (post.getStatus() != PostStatus.OPEN) {
             throw new BusinessException(ErrorCode.POST_NOT_EDITABLE);
@@ -113,7 +120,19 @@ public class PostService {
             throw new BusinessException(ErrorCode.CREW_FULL);
         }
 
-        post.getParticipants().add(CrewParticipantMapper.toEntity(post, member, false));
+        CrewParticipant participant = CrewParticipantMapper.toEntity(
+                post,
+                member,
+                false,
+                req != null ? req.getApplyMessage() : null
+        );
+        post.getParticipants().add(participant);
+        Post savedPost = postRepository.save(post);
+        CrewParticipant savedParticipant = savedPost.getParticipants().stream()
+                .filter(p -> p.getMember().getId().equals(memberId))
+                .findFirst()
+                .orElse(participant);
+        return CrewParticipantMapper.toResponse(savedParticipant);
     }
 
     @Transactional(readOnly = true)
@@ -135,11 +154,11 @@ public class PostService {
         return PagedResponse.of(page);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public PostDto.PostResponse getPost(Long postId) {
         // findByIdWithAll: participants, 연관 팀 모두 fetch → 추가 쿼리 없음
         Post post = findPostWithAll(postId);
-        post.incrementViewCount();
+        post.incrementViewCount(); // 조회수+1
         return PostMapper.toResponse(post);
     }
 

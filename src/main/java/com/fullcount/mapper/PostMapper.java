@@ -39,6 +39,7 @@ public class PostMapper {
                         ? post.getTeam()
                         : post.getSupportTeam()))
                 .profileImage(post.getAuthor() != null ? post.getAuthor().getProfileImageUrl() : null)
+                .viewCount(post.getViewCount())
                 .build();
     }
 

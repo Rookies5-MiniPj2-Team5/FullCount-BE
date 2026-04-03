@@ -3,7 +3,6 @@ package com.fullcount.dto;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fullcount.domain.BoardType;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,6 +15,15 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class PostDto {
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class JoinMateRequest {
+        @Size(max = 300, message = "신청 메시지는 300자 이내로 입력해주세요.")
+        private String applyMessage;
+    }
 
     // ==========================================
     // [REQUEST] 게시글 생성 요청 DTO
@@ -168,6 +176,7 @@ public class PostDto {
         private String awayTeamName; // 원정팀
         private String authorTeam; // 작성자 소속 팀
         private String profileImage; // 프로필 이미지
+        private Integer viewCount; // 조회 수
     }
 
     @Getter @SuperBuilder @NoArgsConstructor
@@ -200,5 +209,7 @@ public class PostDto {
         private String nickname;
         private Double mannerTemperature;
         private Boolean isLeader;
+        private String profileImage;
+        private String applyMessage;
     }
 }
