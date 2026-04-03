@@ -177,6 +177,8 @@ public class PostDto {
         private String authorTeam; // 작성자 소속 팀
         private String profileImage; // 프로필 이미지
         private Integer viewCount; // 조회 수
+        private Integer currentParticipants; // 참여인원수
+        private Integer maxParticipants; // 최대인원수
     }
 
     @Getter @SuperBuilder @NoArgsConstructor

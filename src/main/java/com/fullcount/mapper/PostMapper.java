@@ -2,7 +2,6 @@ package com.fullcount.mapper;
 
 import com.fullcount.domain.Member;
 import com.fullcount.domain.Post;
-import com.fullcount.domain.BoardType;
 import com.fullcount.dto.PostDto;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -40,6 +39,8 @@ public class PostMapper {
                         : post.getSupportTeam()))
                 .profileImage(post.getAuthor() != null ? post.getAuthor().getProfileImageUrl() : null)
                 .viewCount(post.getViewCount())
+                .currentParticipants(post.getParticipants() != null ? post.getParticipants().size() : 0)
+                .maxParticipants(post.getMaxParticipants())
                 .build();
     }
 
