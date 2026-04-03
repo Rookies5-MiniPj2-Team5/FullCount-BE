@@ -5,9 +5,12 @@ import com.fullcount.domain.MemberRole;
 import com.fullcount.domain.Team;
 import com.fullcount.repository.MemberRepository;
 import com.fullcount.repository.TeamRepository;
+import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -19,9 +22,12 @@ public class DataInitializer implements CommandLineRunner {
     private final MemberRepository memberRepository;
     private final TeamRepository teamRepository;
     private final PasswordEncoder passwordEncoder;
+    private final DataSource dataSource;
 
     @Override
     public void run(String... args) throws Exception {
+        initializeTeamsIfEmpty();
+
         String adminEmail = "admin22@fullcount.com";
         
         if (!memberRepository.existsByEmail(adminEmail)) {
@@ -43,5 +49,18 @@ public class DataInitializer implements CommandLineRunner {
         } else {
             log.info("Admin account already exists.");
         }
+    }
+
+    private void initializeTeamsIfEmpty() {
+        if (teamRepository.count() > 0) {
+            log.info("Team data already exists. Skipping data.sql execution.");
+            return;
+        }
+
+        log.info("Team data not found. Executing data.sql.");
+        ResourceDatabasePopulator databasePopulator =
+                new ResourceDatabasePopulator(new ClassPathResource("data.sql"));
+        databasePopulator.execute(dataSource);
+        log.info("Team data initialized from data.sql.");
     }
 }
