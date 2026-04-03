@@ -1,6 +1,7 @@
 package com.fullcount.dto;
 
 import com.fullcount.domain.ChatRoomType;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.util.List;
@@ -12,7 +13,7 @@ public class ChatDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class DirectDmRequest {
-        @jakarta.validation.constraints.NotNull(message = "대화 상대 userId를 입력해주세요.")
+        @NotNull(message = "대화 상대 userId를 입력해주세요.")
         private Long targetUserId;
     }
 

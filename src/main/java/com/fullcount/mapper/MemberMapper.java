@@ -24,6 +24,7 @@ public class MemberMapper {
                 .chatAlert(member.getChatAlert())             // ⭐️ 알림 설정: 채팅
                 .transferAlert(member.getTransferAlert())     // ⭐️ 알림 설정: 양도 거래
                 .mannerAlert(member.getMannerAlert())         // ⭐️ 알림 설정: 매너 평가
+                .balance(member.getBalance())
                 .build();
     }
 
