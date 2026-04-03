@@ -3,7 +3,6 @@ package com.fullcount.dto;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fullcount.domain.BoardType;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,6 +15,15 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class PostDto {
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class JoinMateRequest {
+        @Size(max = 300, message = "신청 메시지는 300자 이내로 입력해주세요.")
+        private String applyMessage;
+    }
 
     // ==========================================
     // [REQUEST] 게시글 생성 요청 DTO
@@ -57,10 +65,6 @@ public class PostDto {
         @NotNull(message = "어웨이 팀 ID는 필수입니다.")
         private String awayTeamId;
 
-        // 🚨 프론트엔드에서 넘어오는 경기장과 모집 인원 필드 추가
-        private String stadium;
-        private Integer maxParticipants;
-    }
 
     /** 2. 직관 크루 등록 요청 */
     @Getter
@@ -150,27 +154,19 @@ public class PostDto {
             @JsonSubTypes.Type(value = TransferResponse.class, name = "TRANSFER")
     })
     public abstract static class PostResponse {
-        private Long id;
-        private String authorNickname;
-        private String title;
-        private String content;
-        private BoardType boardType;
-        private String status;
-        private Integer viewCount;
-        private LocalDateTime createdAt;
+        private Long id; // 게시글 아이디
+        private String authorNickname; // 작성자 닉네임
+        private String title; // 제목
+        private String content; // 내용
+        private BoardType boardType; // 게시판 타입
+        private String status; // 공개여부
+        private Integer viewCount; // 조회수
+        private LocalDateTime createdAt; // 작성 날짜
     }
 
     @Getter @SuperBuilder @NoArgsConstructor
     public static class MateResponse extends PostResponse {
-        private LocalDate matchDate;
-        private String homeTeamName;
-        private String awayTeamName;
-        // 🚨 프론트엔드로 내려줄 경기장, 인원수 필드 추가
-        private String stadium;
-        private Integer maxParticipants;
-        private Integer currentParticipants;
-        private String homeTeamId;
-        private String awayTeamId;
+
     }
 
     @Getter @SuperBuilder @NoArgsConstructor
@@ -203,5 +199,7 @@ public class PostDto {
         private String nickname;
         private Double mannerTemperature;
         private Boolean isLeader;
+        private String profileImage;
+        private String applyMessage;
     }
 }

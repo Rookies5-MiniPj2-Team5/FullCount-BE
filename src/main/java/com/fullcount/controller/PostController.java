@@ -74,8 +74,8 @@ public class PostController {
     @PostMapping
     public ResponseEntity<PostDto.PostResponse> createPost(
             @AuthenticationPrincipal Long memberId,
-            @Valid @RequestBody PostDto.CreatePostRequest req) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(postService.createPost(memberId, req));
+            @Valid @RequestBody PostDto.CreatePostRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(postService.createPost(memberId, request));
     }
 
     @Operation(summary = "게시글 수정 (OPEN 상태만 가능)")
@@ -94,5 +94,21 @@ public class PostController {
             @AuthenticationPrincipal Long memberId) {
         postService.deletePost(id, memberId);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "직관 메이트 참여 멤버 조회")
+    @GetMapping("/{id}/mate/members")
+    public ResponseEntity<List<PostDto.CrewMemberResponse>> getMateMembers(@PathVariable Long id) {
+        return ResponseEntity.ok(postService.getCrewMembers(id));
+    }
+
+    @Operation(summary = "직관 메이트 참여 신청")
+    @PostMapping("/{id}/mate/join")
+    public ResponseEntity<PostDto.CrewMemberResponse> joinMate(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Long memberId,
+            @Valid @RequestBody PostDto.JoinMateRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(postService.joinMate(id, memberId, request));
     }
 }

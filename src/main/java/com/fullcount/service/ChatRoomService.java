@@ -188,7 +188,7 @@ public class ChatRoomService {
     private void addGroupChatParticipants(ChatRoom chatRoom, Post post, ChatRoomType chatRoomType) {
         chatRoom.addParticipant(post.getAuthor());
 
-        if (chatRoomType != ChatRoomType.GROUP_CREW) {
+        if (chatRoomType != ChatRoomType.GROUP_CREW && chatRoomType!=ChatRoomType.GROUP_JOIN) {
             return;
         }
 

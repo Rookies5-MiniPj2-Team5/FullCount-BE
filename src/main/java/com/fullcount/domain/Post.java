@@ -151,6 +151,10 @@ public class Post {
         this.supportTeam = supportTeam;
     }
 
+    public void setStadium(String stadium) {
+        this.stadium = stadium;
+    }
+
     public void setMatchDate(LocalDate matchDate) {
         this.matchDate = matchDate;
     }

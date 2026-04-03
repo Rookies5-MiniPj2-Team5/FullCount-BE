@@ -2,7 +2,6 @@ package com.fullcount.mapper;
 
 import com.fullcount.domain.Member;
 import com.fullcount.domain.Post;
-import com.fullcount.domain.BoardType;
 import com.fullcount.dto.PostDto;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -32,14 +31,10 @@ public class PostMapper {
         applyCommonResponse(builder, post);
         return builder
                 .matchDate(post.getMatchDate())
+                .stadium(post.getStadium() != null ? post.getStadium() : getHomeStadium(post))
                 .homeTeamName(getName(post.getHomeTeam()))
                 .awayTeamName(getName(post.getAwayTeam()))
-                .homeTeamId(post.getHomeTeam() != null ? String.valueOf(post.getHomeTeam().getId()) : null)
-                .awayTeamId(post.getAwayTeam() != null ? String.valueOf(post.getAwayTeam().getId()) : null)
-                // 🚨 추가된 매핑: 경기장, 총 인원, 현재 참가자 수
-                .stadium(post.getStadium())
-                .maxParticipants(post.getMaxParticipants())
-                .currentParticipants(post.getParticipants() != null ? post.getParticipants().size() : 0)
+
                 .build();
     }
 
@@ -83,12 +78,7 @@ public class PostMapper {
 
         // Java 17+ Pattern Matching for instanceof 활용
         if (req instanceof PostDto.CreateMateRequest mateReq) {
-            // 🚨 추가된 매핑: DB 저장 시 경기장과 모집 인원 저장
-            builder.matchDate(mateReq.getMatchDate())
-                    .stadium(mateReq.getStadium())
-                    .maxParticipants(mateReq.getMaxParticipants() != null ? mateReq.getMaxParticipants() : 2);
-        }
-        else if (req instanceof PostDto.CreateCrewRequest crewReq) {
+
             builder.matchDate(crewReq.getMatchDate())
                     .matchTime(crewReq.getMatchTime())
                     .stadium(crewReq.getStadium())
@@ -122,6 +112,10 @@ public class PostMapper {
 
     private static String getName(com.fullcount.domain.Team team) {
         return team != null ? team.getName() : null;
+    }
+
+    private static String getHomeStadium(Post post) {
+        return post.getHomeTeam() != null ? post.getHomeTeam().getHomeStadium() : null;
     }
 
     private static List<String> parseTags(String tags) {
