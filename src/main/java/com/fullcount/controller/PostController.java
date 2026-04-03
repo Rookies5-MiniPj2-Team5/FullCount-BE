@@ -74,8 +74,8 @@ public class PostController {
     @PostMapping
     public ResponseEntity<PostDto.PostResponse> createPost(
             @AuthenticationPrincipal Long memberId,
-            @Valid @RequestBody PostDto.CreatePostRequest req) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(postService.createPost(memberId, req));
+            @Valid @RequestBody PostDto.CreatePostRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(postService.createPost(memberId, request));
     }
 
     @Operation(summary = "게시글 수정 (OPEN 상태만 가능)")

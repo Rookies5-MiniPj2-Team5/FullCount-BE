@@ -32,8 +32,13 @@ public class PostMapper {
         applyCommonResponse(builder, post);
         return builder
                 .matchDate(post.getMatchDate())
+                .stadium(post.getStadium() != null ? post.getStadium() : getHomeStadium(post))
                 .homeTeamName(getName(post.getHomeTeam()))
                 .awayTeamName(getName(post.getAwayTeam()))
+                .authorTeam(getName(post.getTeam() != null
+                        ? post.getTeam()
+                        : post.getSupportTeam()))
+                .profileImage(post.getAuthor() != null ? post.getAuthor().getProfileImageUrl() : null)
                 .build();
     }
 
@@ -77,9 +82,11 @@ public class PostMapper {
 
         // Java 17+ Pattern Matching for instanceof 활용
         if (req instanceof PostDto.CreateMateRequest mateReq) {
-            builder.matchDate(mateReq.getMatchDate());
-        }
-        else if (req instanceof PostDto.CreateCrewRequest crewReq) {
+            builder.matchDate(mateReq.getMatchDate())
+                    .matchTime(mateReq.getMatchTime())
+                    .stadium(mateReq.getStadium())
+                    .maxParticipants(mateReq.getMaxParticipants());
+        } else if (req instanceof PostDto.CreateCrewRequest crewReq) {
             builder.matchDate(crewReq.getMatchDate())
                     .matchTime(crewReq.getMatchTime())
                     .stadium(crewReq.getStadium())
@@ -113,6 +120,10 @@ public class PostMapper {
 
     private static String getName(com.fullcount.domain.Team team) {
         return team != null ? team.getName() : null;
+    }
+
+    private static String getHomeStadium(Post post) {
+        return post.getHomeTeam() != null ? post.getHomeTeam().getHomeStadium() : null;
     }
 
     private static List<String> parseTags(String tags) {

@@ -38,6 +38,12 @@ public class PostService {
             Team homeTeam = findTeam(mateReq.getHomeTeamId());
             Team awayTeam = findTeam(mateReq.getAwayTeamId());
             post.setTeams(homeTeam, awayTeam);
+            post.setStadium(homeTeam.getHomeStadium());
+
+            if (author.getTeam() == null) {
+                throw new BusinessException(ErrorCode.TEAM_NOT_FOUND);
+            }
+            post.setSupportTeam(author.getTeam());
         } else if (req instanceof PostDto.CreateCrewRequest crewReq) {
             Team supportTeam = findTeam(crewReq.getSupportTeamId());
             post.setSupportTeam(supportTeam);
