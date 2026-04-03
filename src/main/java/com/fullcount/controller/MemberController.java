@@ -5,6 +5,7 @@ import com.fullcount.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -29,7 +30,7 @@ public class MemberController {
     @PutMapping("/me")
     public ResponseEntity<MemberDto.UpdateNickNameResponse> updateNickname(
             @AuthenticationPrincipal Long memberId,
-            @RequestBody MemberDto.UpdateNickNameRequest req) {
+            @RequestBody @Valid MemberDto.UpdateNickNameRequest req) {
         return ResponseEntity.ok(memberService.updateNickname(memberId, req));
     }
 
@@ -37,7 +38,7 @@ public class MemberController {
     @PutMapping("/me/team")
     public ResponseEntity<Void> changeTeam(
             @AuthenticationPrincipal Long memberId,
-            @RequestBody MemberDto.ChangeTeamRequest req) {
+            @RequestBody @Valid MemberDto.ChangeTeamRequest req) {
         memberService.changeTeam(memberId, req);
         return ResponseEntity.ok().build();
     }
@@ -46,7 +47,7 @@ public class MemberController {
     @PutMapping("/me/profile-image")
     public ResponseEntity<Void> updateProfileImage(
             @AuthenticationPrincipal Long memberId,
-            @RequestBody MemberDto.UpdateProfileImageRequest req) {
+            @RequestBody @Valid MemberDto.UpdateProfileImageRequest req) {
         memberService.updateProfileImage(memberId, req);
         return ResponseEntity.ok().build();
     }
@@ -55,7 +56,7 @@ public class MemberController {
     @PutMapping("/me/password")
     public ResponseEntity<Void> updatePassword(
             @AuthenticationPrincipal Long memberId,
-            @RequestBody MemberDto.UpdatePasswordRequest req) {
+            @RequestBody @Valid MemberDto.UpdatePasswordRequest req) {
         memberService.updatePassword(memberId, req);
         return ResponseEntity.ok().build();
     }
@@ -64,8 +65,17 @@ public class MemberController {
     @PutMapping("/me/alerts")
     public ResponseEntity<Void> updateAlerts(
             @AuthenticationPrincipal Long memberId,
-            @RequestBody MemberDto.UpdateAlertRequest req) {
+            @RequestBody @Valid MemberDto.UpdateAlertRequest req) {
         memberService.updateAlerts(memberId, req);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "잔액 충전")
+    @PutMapping("/me/charge")
+    public ResponseEntity<Void> updateBalance(
+            @AuthenticationPrincipal Long memberId,
+            @RequestBody @Valid MemberDto.UpdateBalanceRequest req){
+        memberService.updateBalance(memberId, req);
         return ResponseEntity.ok().build();
     }
 }

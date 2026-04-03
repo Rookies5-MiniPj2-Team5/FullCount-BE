@@ -99,4 +99,11 @@ public class MemberService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
         member.updateAlerts(req.getChatAlert(), req.getTransferAlert(), req.getMannerAlert());
     }
+
+    @Transactional
+    public void updateBalance(Long memberId, MemberDto.UpdateBalanceRequest req){
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        member.charge(req.getBalance());
+    }
 }
