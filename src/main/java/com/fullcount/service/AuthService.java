@@ -43,7 +43,7 @@ public class AuthService {
     @Transactional
     public void signup(AuthDto.SignupRequest req) {
         if (memberRepository.existsByEmail(req.getEmail())) {
-            throw new BusinessException(ErrorCode.DUPLICATE_Eit MAIL);
+            throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
         }
 
         if (memberRepository.existsByNickname(req.getNickname())) {
