@@ -80,4 +80,13 @@ public class ChatRoomController {
             @RequestParam(defaultValue = "20") int size) {
         return ResponseEntity.ok(chatRoomService.getChatMessages(memberId, roomId, lastMessageId, size));
     }
+
+    @Operation(summary = "채팅방 읽음 처리", description = "채팅방 입장 시 메시지를 읽음 처리합니다.")
+    @PostMapping("/{roomId}/read")
+    public ResponseEntity<Void> markAsRead(
+            @AuthenticationPrincipal Long memberId,
+            @PathVariable Long roomId) {
+        chatRoomService.markAsRead(memberId, roomId);
+        return ResponseEntity.ok().build();
+    }
 }

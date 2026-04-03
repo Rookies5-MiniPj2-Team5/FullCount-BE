@@ -30,6 +30,7 @@ public class ChatDTO {
         private String senderNickname;
         private String content;
         private String timestamp;
+        private String type;
     }
 
     // ── 채팅방 응답 ──

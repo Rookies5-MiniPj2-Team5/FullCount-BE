@@ -1,12 +1,6 @@
 package com.fullcount.service;
 
-import com.fullcount.domain.ChatMessage;
-import com.fullcount.domain.ChatRoom;
-import com.fullcount.domain.ChatRoomParticipant;
-import com.fullcount.domain.ChatRoomType;
-import com.fullcount.domain.CrewParticipant;
-import com.fullcount.domain.Member;
-import com.fullcount.domain.Post;
+import com.fullcount.domain.*;
 import com.fullcount.dto.ChatDTO;
 import com.fullcount.dto.common.CursorResponse;
 import com.fullcount.dto.common.PagedResponse;
@@ -14,10 +8,9 @@ import com.fullcount.exception.BusinessException;
 import com.fullcount.exception.ErrorCode;
 import com.fullcount.mapper.ChatMapper;
 import com.fullcount.mapper.ChatRoomMapper;
-import com.fullcount.repository.ChatMessageRepository;
-import com.fullcount.repository.ChatRoomRepository;
-import com.fullcount.repository.MemberRepository;
-import com.fullcount.repository.PostRepository;
+import com.fullcount.repository.*;
+import com.fullcount.domain.ChatReadStatus;
+import com.fullcount.repository.ChatReadStatusRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -44,6 +37,7 @@ public class ChatRoomService {
     private final ChatMessageRepository chatMessageRepository;
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
+    private final ChatReadStatusRepository chatReadStatusRepository;
 
     public PagedResponse<ChatDTO.ChatRoomResponse> getMyChatRooms(Long memberId, Pageable pageable) {
         log.info("채팅방 목록 조회 시작 - memberId={}, page={}, size={}", memberId, pageable.getPageNumber(), pageable.getPageSize());
@@ -51,12 +45,27 @@ public class ChatRoomService {
         Page<ChatRoom> chatRooms = chatRoomRepository.findAllByMemberId(memberId, pageable);
 
         List<Long> roomIds = chatRooms.map(ChatRoom::getId).toList();
+
+        // 최신 메시지 조회
         Map<Long, ChatMessage> lastMessageMap = chatMessageRepository.findLastMessagesByRoomIds(roomIds)
                 .stream()
                 .collect(Collectors.toMap(message -> message.getChatRoom().getId(), message -> message));
 
-        Page<ChatDTO.ChatRoomResponse> responsePage = chatRooms.map(room ->
-                ChatMapper.toChatRoomResponse(room, lastMessageMap.get(room.getId())));
+        // 읽음 상태 조회
+        Map<Long, Long> lastReadMap = chatReadStatusRepository
+                .findByMemberIdAndRoomIds(memberId, roomIds)
+                .stream()
+                .collect(Collectors.toMap(s -> s.getChatRoom().getId(), ChatReadStatus::getLastReadMessageId));
+
+        Page<ChatDTO.ChatRoomResponse> responsePage = chatRooms.map(room -> {
+            ChatMessage lastMessage = lastMessageMap.get(room.getId());
+            Long lastReadMessageId = lastReadMap.get(room.getId());
+
+            // 읽지 않은 메시지 수 계산
+            int unreadCount = chatReadStatusRepository.countUnreadMessages(room.getId(), lastReadMessageId);
+
+            return ChatMapper.toChatRoomResponse(room, lastMessage, unreadCount);
+        });
 
         log.info("채팅방 목록 조회 완료 - memberId={}, total={}", memberId, chatRooms.getTotalElements());
         return PagedResponse.of(responsePage);
@@ -115,7 +124,7 @@ public class ChatRoomService {
         ChatRoom chatRoom = chatRoomRepository.findByIdWithSummary(roomId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_ROOM_NOT_FOUND));
 
-        return ChatMapper.toChatRoomResponse(chatRoom, null);
+        return ChatMapper.toChatRoomResponse(chatRoom, null, 0);
     }
 
     private List<Member> getParticipants(ChatRoom chatRoom) {
@@ -212,5 +221,33 @@ public class ChatRoomService {
                     log.info("새 직접 DM 생성 완료 - roomId={}", newRoomId);
                     return newRoomId;
                 });
+    }
+
+    @Transactional
+    public void markAsRead(Long memberId, Long roomId) {
+        // 해당 채팅방의 마지막 메시지 ID 조회
+        List<Long> roomIds = List.of(roomId);
+        Map<Long, ChatMessage> lastMessageMap = chatMessageRepository.findLastMessagesByRoomIds(roomIds)
+                .stream()
+                .collect(Collectors.toMap(m -> m.getChatRoom().getId(), m -> m));
+
+        ChatMessage lastMessage = lastMessageMap.get(roomId);
+        if (lastMessage == null) return;
+
+        ChatReadStatus status = chatReadStatusRepository
+                .findByChatRoomIdAndMemberId(roomId, memberId)
+                .orElseGet(() -> {
+                    ChatRoom chatRoom = chatRoomRepository.findById(roomId)
+                            .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_ROOM_NOT_FOUND));
+                    Member member = memberRepository.findById(memberId)
+                            .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+                    return ChatReadStatus.builder()
+                            .chatRoom(chatRoom)
+                            .member(member)
+                            .build();
+                });
+
+        status.updateLastRead(lastMessage.getId());
+        chatReadStatusRepository.save(status);
     }
 }
