@@ -107,4 +107,15 @@ public class MemberDto {
         @Max(value = 1_000_000_000, message = "잔액은 10억을 초과할 수 없습니다.")
         private Integer balance;
     }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MyActivityResponse {
+        private Long id;
+        private String title;
+        private java.time.LocalDateTime createdAt;
+        private String status;
+    }
 }

@@ -19,9 +19,9 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final TeamRepository teamRepository;
-
-    // ⭐️ 중요: final 변수는 반드시 생성자나 클래스 최상단에 모여 있어야 주입(DI)이 정상적으로 됩니다.
     private final PasswordEncoder passwordEncoder;
+    private final com.fullcount.repository.PostRepository postRepository;
+    private final com.fullcount.repository.TransferRepository transferRepository;
 
     @Transactional(readOnly = true)
     public MemberDto.MemberResponse getMyInfo(Long memberId) {
@@ -105,5 +105,39 @@ public class MemberService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
         member.charge(req.getBalance());
+    }
+
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public java.util.List<com.fullcount.dto.MemberDto.MyActivityResponse> getMyPosts(Long memberId) {
+        return postRepository.findByAuthorIdOrderByCreatedAtDesc(memberId).stream()
+                .map(post -> com.fullcount.dto.MemberDto.MyActivityResponse.builder()
+                        .id(post.getId()).title(post.getTitle())
+                        .createdAt(post.getCreatedAt()).status(post.getStatus().name()).build())
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public java.util.List<com.fullcount.dto.MemberDto.MyActivityResponse> getMyCrews(Long memberId) {
+        return postRepository.findPostsByParticipantId(memberId).stream()
+                .map(post -> com.fullcount.dto.MemberDto.MyActivityResponse.builder()
+                        .id(post.getId()).title(post.getTitle())
+                        .createdAt(post.getCreatedAt()).status(post.getStatus().name()).build())
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public java.util.List<com.fullcount.dto.MemberDto.MyActivityResponse> getMyTransfers(Long memberId) {
+        java.util.List<com.fullcount.domain.Transfer> allTransfers = new java.util.ArrayList<>();
+        allTransfers.addAll(transferRepository.findBySellerId(memberId));
+        allTransfers.addAll(transferRepository.findByBuyerId(memberId));
+        allTransfers.sort((t1, t2) -> t2.getCreatedAt().compareTo(t1.getCreatedAt()));
+
+        return allTransfers.stream().distinct().map(t -> {
+            boolean isSeller = t.getSeller() != null && t.getSeller().getId().equals(memberId);
+            return com.fullcount.dto.MemberDto.MyActivityResponse.builder()
+                    .id(t.getId())
+                    .title((t.getPost() != null ? t.getPost().getTitle() : "게시글") + (isSeller ? " [판매]" : " [구매]"))
+                    .createdAt(t.getCreatedAt()).status(t.getStatus().name()).build();
+        }).collect(java.util.stream.Collectors.toList());
     }
 }

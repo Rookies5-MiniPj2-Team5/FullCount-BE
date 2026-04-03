@@ -56,6 +56,10 @@ public class PostDto {
 
         @NotNull(message = "어웨이 팀 ID는 필수입니다.")
         private String awayTeamId;
+
+        // 🚨 프론트엔드에서 넘어오는 경기장과 모집 인원 필드 추가
+        private String stadium;
+        private Integer maxParticipants;
     }
 
     /** 2. 직관 크루 등록 요청 */
@@ -123,6 +127,13 @@ public class PostDto {
         private String title;
         @NotBlank(message = "내용은 필수입니다.")
         private String content;
+
+        // 수정 시에도 경기장과 인원수를 받을 수 있도록 추가
+        private String stadium;
+        private Integer maxParticipants;
+        private String homeTeamId;
+        private String awayTeamId;
+        private LocalDate matchDate;
     }
 
     // ==========================================
@@ -154,6 +165,12 @@ public class PostDto {
         private LocalDate matchDate;
         private String homeTeamName;
         private String awayTeamName;
+        // 🚨 프론트엔드로 내려줄 경기장, 인원수 필드 추가
+        private String stadium;
+        private Integer maxParticipants;
+        private Integer currentParticipants;
+        private String homeTeamId;
+        private String awayTeamId;
     }
 
     @Getter @SuperBuilder @NoArgsConstructor
