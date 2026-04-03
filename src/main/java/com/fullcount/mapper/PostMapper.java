@@ -34,13 +34,7 @@ public class PostMapper {
                 .stadium(post.getStadium() != null ? post.getStadium() : getHomeStadium(post))
                 .homeTeamName(getName(post.getHomeTeam()))
                 .awayTeamName(getName(post.getAwayTeam()))
-                .authorTeam(getName(post.getTeam() != null
-                        ? post.getTeam()
-                        : post.getSupportTeam()))
-                .profileImage(post.getAuthor() != null ? post.getAuthor().getProfileImageUrl() : null)
-                .viewCount(post.getViewCount())
-                .currentParticipants(post.getParticipants() != null ? post.getParticipants().size() : 0)
-                .maxParticipants(post.getMaxParticipants())
+
                 .build();
     }
 
@@ -84,11 +78,7 @@ public class PostMapper {
 
         // Java 17+ Pattern Matching for instanceof 활용
         if (req instanceof PostDto.CreateMateRequest mateReq) {
-            builder.matchDate(mateReq.getMatchDate())
-                    .matchTime(mateReq.getMatchTime())
-                    .stadium(mateReq.getStadium())
-                    .maxParticipants(mateReq.getMaxParticipants());
-        } else if (req instanceof PostDto.CreateCrewRequest crewReq) {
+
             builder.matchDate(crewReq.getMatchDate())
                     .matchTime(crewReq.getMatchTime())
                     .stadium(crewReq.getStadium())

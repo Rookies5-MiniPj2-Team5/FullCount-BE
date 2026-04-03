@@ -78,4 +78,22 @@ public class MemberController {
         memberService.updateBalance(memberId, req);
         return ResponseEntity.ok().build();
     }
+
+    @Operation(summary = "내가 참여 중인 크루 목록 조회")
+    @GetMapping("/me/crews")
+    public ResponseEntity<java.util.List<MemberDto.MyActivityResponse>> getMyCrews(@AuthenticationPrincipal Long memberId) {
+        return ResponseEntity.ok(memberService.getMyCrews(memberId));
+    }
+
+    @Operation(summary = "내가 작성한 모집글 목록 조회")
+    @GetMapping("/me/posts")
+    public ResponseEntity<java.util.List<MemberDto.MyActivityResponse>> getMyPosts(@AuthenticationPrincipal Long memberId) {
+        return ResponseEntity.ok(memberService.getMyPosts(memberId));
+    }
+
+    @Operation(summary = "나의 티켓 양도/양수 내역 조회")
+    @GetMapping("/me/transfers")
+    public ResponseEntity<java.util.List<MemberDto.MyActivityResponse>> getMyTransfers(@AuthenticationPrincipal Long memberId) {
+        return ResponseEntity.ok(memberService.getMyTransfers(memberId));
+    }
 }
