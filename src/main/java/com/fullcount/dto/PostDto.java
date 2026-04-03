@@ -3,7 +3,6 @@ package com.fullcount.dto;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fullcount.domain.BoardType;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,6 +15,15 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class PostDto {
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class JoinMateRequest {
+        @Size(max = 300, message = "신청 메시지는 300자 이내로 입력해주세요.")
+        private String applyMessage;
+    }
 
     // ==========================================
     // [REQUEST] 게시글 생성 요청 DTO
@@ -56,6 +64,17 @@ public class PostDto {
 
         @NotNull(message = "어웨이 팀 ID는 필수입니다.")
         private String awayTeamId;
+
+        @NotNull(message = "모집 인원을 설정해 주세요.")
+        @Min(value = 2, message = "최소 2명 이상 모집해야 합니다.")
+        @Max(value = 50, message = "최대 50명까지 모집 가능합니다.")
+        private Integer maxParticipants;
+
+        @NotBlank(message = "경기장 정보는 필수입니다.")
+        private String stadium;
+
+        @Pattern(regexp = "^([01]?[0-9]|2[0-3]):[0-5][0-9]$", message = "시간 형식(HH:mm)이 올바르지 않습니다.")
+        private String matchTime;
     }
 
     /** 2. 직관 크루 등록 요청 */
@@ -139,21 +158,27 @@ public class PostDto {
             @JsonSubTypes.Type(value = TransferResponse.class, name = "TRANSFER")
     })
     public abstract static class PostResponse {
-        private Long id;
-        private String authorNickname;
-        private String title;
-        private String content;
-        private BoardType boardType;
-        private String status;
-        private Integer viewCount;
-        private LocalDateTime createdAt;
+        private Long id; // 게시글 아이디
+        private String authorNickname; // 작성자 닉네임
+        private String title; // 제목
+        private String content; // 내용
+        private BoardType boardType; // 게시판 타입
+        private String status; // 공개여부
+        private Integer viewCount; // 조회수
+        private LocalDateTime createdAt; // 작성 날짜
     }
 
     @Getter @SuperBuilder @NoArgsConstructor
     public static class MateResponse extends PostResponse {
-        private LocalDate matchDate;
-        private String homeTeamName;
-        private String awayTeamName;
+        private LocalDate matchDate; // 직관 날짜
+        private String stadium; // 경기장
+        private String homeTeamName; // 홈팀
+        private String awayTeamName; // 원정팀
+        private String authorTeam; // 작성자 소속 팀
+        private String profileImage; // 프로필 이미지
+        private Integer viewCount; // 조회 수
+        private Integer currentParticipants; // 참여인원수
+        private Integer maxParticipants; // 최대인원수
     }
 
     @Getter @SuperBuilder @NoArgsConstructor
@@ -186,5 +211,7 @@ public class PostDto {
         private String nickname;
         private Double mannerTemperature;
         private Boolean isLeader;
+        private String profileImage;
+        private String applyMessage;
     }
 }
