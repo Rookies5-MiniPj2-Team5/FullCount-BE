@@ -28,7 +28,7 @@ public class ChatRoom {
     private Post post;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "room_type", nullable = false, length = 15)
+    @Column(name = "room_type", nullable = false, length = 20)
     private ChatRoomType roomType;
 
     /** 유저 간 DM 발신자 (ONE_ON_ONE_DIRECT 전용) */

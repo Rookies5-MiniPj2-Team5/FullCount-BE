@@ -1,6 +1,7 @@
 package com.fullcount.mapper;
 
 import com.fullcount.domain.ChatMessage;
+import com.fullcount.domain.ChatMessageType;
 import com.fullcount.domain.ChatRoom;
 import com.fullcount.domain.Member;
 import com.fullcount.dto.ChatDTO;
@@ -18,6 +19,9 @@ public class ChatMapper {
                 .chatRoom(chatRoom)
                 .sender(sender)
                 .content(payload.getContent().trim())
+                .type(payload.getType() != null
+                        ? ChatMessageType.valueOf(payload.getType())
+                        : ChatMessageType.CHAT) // 기본값 CHAT
                 .build();
     }
 
@@ -31,6 +35,7 @@ public class ChatMapper {
                 .senderNickname(message.getSender().getNickname())
                 .content(message.getContent())
                 .timestamp(extractTimestamp(message))
+                .type(message.getType() != null ? message.getType().name() : "CHAT")
                 .build();
     }
 
@@ -42,11 +47,9 @@ public class ChatMapper {
     }
 
     // ChatRoom 리스트 항목 변환
-    public static ChatDTO.ChatRoomResponse toChatRoomResponse(ChatRoom room, ChatMessage lastMessage) {
-        // ONE_ON_ONE_DIRECT 방은 post가 없으므로 initiator/receiver 닉네임으로 title 대체
-        String title = (room.getPost() != null)
-                ? room.getPost().getTitle()
-                : buildDirectDmTitle(room);
+    public static ChatDTO.ChatRoomResponse toChatRoomResponse(ChatRoom room, ChatMessage lastMessage, int unreadCount) {
+        String title = room.getPost() != null ? room.getPost().getTitle()
+                : (room.getInitiator() != null ? room.getInitiator().getNickname() : "채팅방");
 
         return ChatDTO.ChatRoomResponse.builder()
                 .chatRoomId(room.getId())
@@ -54,7 +57,7 @@ public class ChatMapper {
                 .title(title)
                 .lastMessage(lastMessage != null ? lastMessage.getContent() : null)
                 .lastMessageAt(lastMessage != null ? extractTimestamp(lastMessage) : null)
-                .unreadCount(0) // 미구현 (0으로 초기화)
+                .unreadCount(unreadCount)
                 .build();
     }
 
