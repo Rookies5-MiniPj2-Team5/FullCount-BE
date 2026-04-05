@@ -219,4 +219,23 @@ public class PostService {
         return postRepository.findByIdWithParticipants(postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
     }
+
+    @Transactional(readOnly = true)
+    public PagedResponse<PostDto.PostResponse> getPosts(BoardType boardType, String teamIdStr, PostStatus status, boolean participating, Long memberId, Pageable pageable) {
+
+        // 참여 중인 목록 요청 시 처리
+        if (participating && memberId != null) {
+            Page<PostDto.PostResponse> page = postRepository.findParticipatingPosts(boardType, memberId, pageable)
+                    .map(PostMapper::toResponse);
+            return PagedResponse.of(page);
+        }
+
+        Long teamId = null;
+        if (teamIdStr != null && !teamIdStr.isBlank()) {
+            teamId = findTeam(teamIdStr).getId();
+        }
+        Page<PostDto.PostResponse> page = postRepository.findByFilters(boardType, teamId, status, pageable)
+                .map(PostMapper::toResponse);
+        return PagedResponse.of(page);
+    }
 }

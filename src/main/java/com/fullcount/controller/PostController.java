@@ -36,9 +36,11 @@ public class PostController {
             @RequestParam(defaultValue = "CREW") BoardType boardType,
             @RequestParam(required = false) String teamId, // 팀 선택 탭
             @RequestParam(required = false) PostStatus status, // 모집 중 / 마감 필터
+            @RequestParam(defaultValue = "false") boolean participating,
+            @AuthenticationPrincipal Long memberId,
             @ParameterObject @PageableDefault(size = 9, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
-        return ResponseEntity.ok(postService.getPosts(boardType, teamId, status, pageable));
+        return ResponseEntity.ok(postService.getPosts(boardType, teamId, status, participating, memberId, pageable));
     }
 
     @Operation(summary = "팀 전용 게시글 목록")

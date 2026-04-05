@@ -1,10 +1,13 @@
 package com.fullcount.service;
 
 import com.fullcount.domain.*;
+import com.fullcount.dto.PostDto;
 import com.fullcount.dto.TransferDto;
+import com.fullcount.dto.common.PagedResponse;
 import com.fullcount.exception.BusinessException;
 import com.fullcount.exception.ErrorCode;
 import com.fullcount.mapper.ChatRoomMapper;
+import com.fullcount.mapper.PostMapper;
 import com.fullcount.mapper.TransferMapper;
 import com.fullcount.repository.ChatRoomRepository;
 import com.fullcount.repository.MemberRepository;
@@ -12,6 +15,8 @@ import com.fullcount.repository.PostRepository;
 import com.fullcount.repository.TransferRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -178,6 +183,13 @@ public class TransferService {
 
         log.info("거래 취소 완료 - transferId={}, status={}", transferId, transfer.getStatus());
         return TransferMapper.toTransferStatusResponse(transfer);
+    }
+    @Transactional(readOnly = true)
+    public PagedResponse<PostDto.PostResponse> getMyTransfers(Long memberId, Pageable pageable) {
+        // 내가 구매자(buyer)인 거래들을 가져와서 해당 게시글(Post) 정보를 반환
+        Page<PostDto.PostResponse> page = transferRepository.findAllByBuyerId(memberId, pageable)
+                .map(transfer -> PostMapper.toResponse(transfer.getPost()));
+        return PagedResponse.of(page);
     }
 
     private Transfer getTransfer(Long transferId) {

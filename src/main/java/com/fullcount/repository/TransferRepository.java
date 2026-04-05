@@ -74,6 +74,12 @@ public interface TransferRepository extends JpaRepository<Transfer, Long> {
             "FROM Transfer t")
     TransferDashboardSummary fetchDashboardSummary();
 
+    @Query("SELECT t FROM Transfer t " +
+            "JOIN FETCH t.post p " +
+            "WHERE t.buyer.id = :buyerId " +
+            "ORDER BY t.id DESC")
+    Page<Transfer> findAllByBuyerId(@Param("buyerId") Long buyerId, Pageable pageable);
+
     interface TransferDashboardSummary {
         long getTotalCount();
         long getPendingCount();
