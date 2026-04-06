@@ -79,13 +79,13 @@ public class BaseballService {
         List<BaseballGame> games = baseballGameRepository.findByGameDateStartingWithOrderByGameDateAscGameTimeAsc(year);
 
         int y = Integer.parseInt(year);
-        java.time.LocalDate today = java.time.LocalDate.now();
         java.time.LocalDate regularSeasonStart = java.time.LocalDate.of(y, 3, 23); // 정규시즌 개막일 기준
 
         return games.stream()
                 .filter(game -> {
                     java.time.LocalDate gameDateParsed = java.time.LocalDate.parse(game.getGameDate());
-                    return !gameDateParsed.isBefore(regularSeasonStart) && !gameDateParsed.isAfter(today);
+                    // 정규시즌 이전 경기 제한 (미래 경기는 폐막까지 쭉 보여줌)
+                    return !gameDateParsed.isBefore(regularSeasonStart);
                 })
                 .map(game -> BaseballGameDto.builder()
                 .gameId(game.getGameId())
@@ -107,19 +107,13 @@ public class BaseballService {
         java.time.LocalDate today = java.time.LocalDate.now();
         java.time.LocalDate regularSeasonStart = java.time.LocalDate.of(year, 3, 23); // 시범경기 제외
         
-        int currentMonth = today.getYear() == year ? today.getMonthValue() : 10;
-        int endMonth = Math.min(10, currentMonth);
-
-        for (int month = 3; month <= endMonth; month++) {
+        for (int month = 3; month <= 10; month++) {
             String dateParam = String.format("%d-%02d-01", year, month);
             List<BaseballGameDto> monthlyDataResp = fetchMonthlyFromApi(dateParam);
 
-            // 유효한 정규시즌 내 과거~오늘 경기까지만 필터링 (미래 경기 및 시범경기 스킵)
+            // 유효한 정규시즌 내 경기만 필터링 (미래 경기는 폐막전까지 일정 보여주기 위해 저장)
             List<BaseballGameDto> monthlyData = monthlyDataResp.stream()
-                    .filter(dto -> {
-                        java.time.LocalDate gameDateParsed = java.time.LocalDate.parse(dto.getGameDate());
-                        return !gameDateParsed.isBefore(regularSeasonStart) && !gameDateParsed.isAfter(today);
-                    })
+                    .filter(dto -> !java.time.LocalDate.parse(dto.getGameDate()).isBefore(regularSeasonStart))
                     .collect(Collectors.toList());
 
             if (monthlyData.isEmpty()) continue;
