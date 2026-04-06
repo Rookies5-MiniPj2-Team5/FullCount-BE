@@ -39,4 +39,12 @@ public class CrewParticipant {
     @CreatedDate
     @Column(name = "joined_at", updatable = false)
     private LocalDateTime joinedAt;
+
+    @Column(name = "is_approved")
+    @Builder.Default
+    private Boolean isApproved = true;
+
+    public void approve() {
+        this.isApproved = true;
+    }
 }
