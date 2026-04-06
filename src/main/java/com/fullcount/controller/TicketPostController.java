@@ -81,9 +81,20 @@ public class TicketPostController {
         return ResponseEntity.ok(ticketPostService.updateStatus(id, memberId, req.getStatus()));
     }
 
-    @Operation(summary = "티켓 양도글 삭제 (작성자 본인만)")
+    @Operation(summary = "티켓 양도글 수정 (작성자 본인만, 거래전일 때만)")
     @SecurityRequirement(name = "bearerAuth")
-    @DeleteMapping("/{id}")
+    @PutMapping("/ticket-transfers/{id}")
+    public ResponseEntity<TicketPostDto.Response> updateTicket(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Long memberId,
+            @Valid @RequestBody TicketPostDto.TicketTransferRequestDTO req) {
+
+        return ResponseEntity.ok(ticketPostService.updateTicket(id, memberId, req));
+    }
+
+    @Operation(summary = "티켓 양도글 삭제 (작성자 본인만, 거래전일 때만)")
+    @SecurityRequirement(name = "bearerAuth")
+    @DeleteMapping("/ticket-transfers/{id}")
     public ResponseEntity<Void> deleteTicket(
             @PathVariable Long id,
             @AuthenticationPrincipal Long memberId) {
