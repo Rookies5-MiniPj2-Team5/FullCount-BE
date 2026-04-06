@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import com.fullcount.service.BaseballService;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/baseball")
@@ -32,8 +33,8 @@ public class BaseballController {
     }
 
     // 3. 오늘의 라이브 경기 현황 (네이버 JSON API를 백엔드에서 프록시)
-    @GetMapping(value = "/live", produces = "application/json;charset=UTF-8")
-    public ResponseEntity<String> getLiveGames(@RequestParam String date) {
+    @GetMapping("/live")
+    public ResponseEntity<Map<String, Object>> getLiveGames(@RequestParam String date) {
         return ResponseEntity.ok(baseballService.getLiveGames(date));
     }
 
