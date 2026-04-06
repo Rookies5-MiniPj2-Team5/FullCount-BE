@@ -127,4 +127,23 @@ public class PostController {
         postService.rejectCrewMember(postId, memberId, hostId);
         return ResponseEntity.ok().build();
     }
+
+    @Operation(summary = "참여 중인 포스트 나가기")
+    @DeleteMapping("/{id}/leave")
+    public ResponseEntity<Void> leavePost(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Long memberId) {
+        postService.leaveParticipant(id, memberId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "참여자 강제 퇴장 (방장 전용)")
+    @DeleteMapping("/{postId}/members/{memberId}/expel")
+    public ResponseEntity<Void> expelMember(
+            @PathVariable Long postId,
+            @PathVariable Long memberId,
+            @AuthenticationPrincipal Long hostId) {
+        postService.expelParticipant(postId, memberId, hostId);
+        return ResponseEntity.ok().build();
+    }
 }
