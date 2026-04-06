@@ -79,6 +79,22 @@ public class TicketPost {
         this.status = newStatus;
     }
 
+    public void update(String title, String content, String homeTeam, String awayTeam,
+                       LocalDate matchDate, LocalTime matchTime, String stadium,
+                       String seatArea, String seatBlock, String seatRow, Integer price) {
+        this.title = title;
+        this.content = content;
+        this.homeTeam = homeTeam;
+        this.awayTeam = awayTeam;
+        this.matchDate = matchDate;
+        this.matchTime = matchTime;
+        this.stadium = stadium;
+        this.seatArea = seatArea;
+        this.seatBlock = seatBlock;
+        this.seatRow = seatRow;
+        this.price = price;
+    }
+
     public boolean isOwnedBy(Long memberId) {
         return this.author.getId().equals(memberId);
     }
