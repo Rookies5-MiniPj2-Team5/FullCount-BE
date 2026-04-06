@@ -28,7 +28,7 @@ public class Transfer {
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_id", nullable = false, unique = true)
+    @JoinColumn(name = "post_id", nullable = true, unique = true)
     private Post post;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -54,6 +54,10 @@ public class Transfer {
     @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ticket_post_id")
+    private TicketPost ticketPost;
 
     // ────── 비즈니스 메서드 ──────
 

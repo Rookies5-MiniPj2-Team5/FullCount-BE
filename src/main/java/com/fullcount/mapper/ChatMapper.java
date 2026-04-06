@@ -1,9 +1,6 @@
 package com.fullcount.mapper;
 
-import com.fullcount.domain.ChatMessage;
-import com.fullcount.domain.ChatMessageType;
-import com.fullcount.domain.ChatRoom;
-import com.fullcount.domain.Member;
+import com.fullcount.domain.*;
 import com.fullcount.dto.ChatDTO;
 import java.time.LocalDateTime;
 import java.util.List;
