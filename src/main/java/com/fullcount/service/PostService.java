@@ -279,4 +279,45 @@ public class PostService {
                 .map(PostMapper::toResponse);
         return PagedResponse.of(page);
     }
+
+    /** 참여자 스스로 나가기 */
+    @Transactional
+    public void leaveParticipant(Long postId, Long memberId) {
+        Post post = findPostWithParticipants(postId);
+
+        // 방장은 나갈 수 없음 (글 삭제를 이용해야 함)
+        if (post.getAuthor().getId().equals(memberId)) {
+            throw new BusinessException(ErrorCode.CANNOT_LEAVE_HOST);
+        }
+
+        CrewParticipant participant = post.getParticipants().stream()
+                .filter(p -> p.getMember().getId().equals(memberId))
+                .findFirst()
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
+        post.getParticipants().remove(participant);
+    }
+
+    /** 방장이 참여자 강제 퇴장시키기 */
+    @Transactional
+    public void expelParticipant(Long postId, Long targetMemberId, Long hostId) {
+        Post post = findPostWithParticipants(postId);
+
+        // 방장 권한 체크
+        if (!post.getAuthor().getId().equals(hostId)) {
+            throw new BusinessException(ErrorCode.ACCESS_DENIED);
+        }
+
+        // 방장 자신을 퇴장시킬 수 없음
+        if (targetMemberId.equals(hostId)) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST);
+        }
+
+        CrewParticipant participant = post.getParticipants().stream()
+                .filter(p -> p.getMember().getId().equals(targetMemberId))
+                .findFirst()
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
+        post.getParticipants().remove(participant);
+    }
 }
