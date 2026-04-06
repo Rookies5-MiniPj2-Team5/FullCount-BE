@@ -30,7 +30,8 @@ public enum ErrorCode {
     INVALID_BOARD_TYPE("POST_005", "해당 게시판 타입에 유효하지 않은 요청입니다.", HttpStatus.BAD_REQUEST),
     CREW_FULL("POST_006", "모집 인원이 가득 찼습니다.", HttpStatus.BAD_REQUEST),
     ALREADY_PARTICIPATING("POST_007", "이미 참여 중인 모임입니다.", HttpStatus.BAD_REQUEST),
-
+    CANNOT_LEAVE_HOST("POST_008", "방장은 나갈 수 없습니다. 글을 삭제해주세요.", HttpStatus.BAD_REQUEST),
+    INVALID_REQUEST("COMMON_001", "잘못된 요청입니다.", HttpStatus.BAD_REQUEST),
     // 티켓 양도 게시판
     TICKET_NOT_FOUND("TCK_001", "존재하지 않는 티켓 양도 게시글입니다.", HttpStatus.NOT_FOUND),
 
