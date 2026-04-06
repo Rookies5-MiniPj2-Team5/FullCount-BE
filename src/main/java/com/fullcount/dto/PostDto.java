@@ -208,10 +208,12 @@ public class PostDto {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class CrewMemberResponse {
+        private Long memberId;
         private String nickname;
         private Double mannerTemperature;
         private Boolean isLeader;
         private String profileImage;
         private String applyMessage;
+        private Boolean isApproved;
     }
 }
