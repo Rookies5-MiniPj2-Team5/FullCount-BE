@@ -50,9 +50,11 @@ public enum ErrorCode {
     TEAM_NOT_FOUND("TEAM_001", "존재하지 않는 팀입니다.", HttpStatus.NOT_FOUND),
 
     // 채팅
+    // 채팅
     CHAT_ROOM_NOT_FOUND("CHAT_001", "존재하지 않는 채팅방입니다.", HttpStatus.NOT_FOUND),
     CHAT_ROOM_ACCESS_DENIED("CHAT_002", "해당 채팅방에 접근 권한이 없습니다.", HttpStatus.FORBIDDEN),
     CHAT_MESSAGE_EMPTY("CHAT_003", "메시지 내용은 비어 있을 수 없습니다.", HttpStatus.BAD_REQUEST),
+    CHAT_LEAVE_NOT_ALLOWED("CHAT_004", "거래 진행 중에는 채팅방을 나갈 수 없습니다.", HttpStatus.BAD_REQUEST),
 
     // 서버
     INTERNAL_SERVER_ERROR("SERVER_001", "서버 내부 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),

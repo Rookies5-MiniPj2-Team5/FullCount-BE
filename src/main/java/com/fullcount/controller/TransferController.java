@@ -73,4 +73,22 @@ public class TransferController {
             @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
         return ResponseEntity.ok(transferService.getMyTransfers(memberId, pageable));
     }
+
+    @Operation(summary = "채팅방 기준 거래 정보 조회")
+    @GetMapping("/room/{roomId}")
+    public ResponseEntity<TransferDto.TransferResponse> getTransferByRoomId(
+            @PathVariable Long roomId) {
+        TransferDto.TransferResponse response = transferService.getTransferByRoomId(roomId);
+        if (response == null) return ResponseEntity.ok().build();
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "채팅방 기준 양도 요청")
+    @PostMapping("/room/{roomId}/request")
+    public ResponseEntity<TransferDto.TransferRequestResponse> requestTransferByRoomId(
+            @PathVariable Long roomId,
+            @AuthenticationPrincipal Long memberId) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(transferService.requestTransferByRoomId(roomId, memberId));
+    }
 }

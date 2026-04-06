@@ -1,9 +1,6 @@
 package com.fullcount.mapper;
 
-import com.fullcount.domain.ChatRoom;
-import com.fullcount.domain.ChatRoomType;
-import com.fullcount.domain.Member;
-import com.fullcount.domain.Post;
+import com.fullcount.domain.*;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -14,6 +11,15 @@ public class ChatRoomMapper {
     public static ChatRoom toEntity(ChatRoomType chatRoomType, Post post, Member initiator, Member receiver) {
         return ChatRoom.builder()
                 .post(post)
+                .roomType(chatRoomType)
+                .initiator(initiator)
+                .receiver(receiver)
+                .build();
+    }
+
+    public static ChatRoom toEntity(ChatRoomType chatRoomType, TicketPost ticketPost, Member initiator, Member receiver) {
+        return ChatRoom.builder()
+                .ticketPost(ticketPost)
                 .roomType(chatRoomType)
                 .initiator(initiator)
                 .receiver(receiver)
