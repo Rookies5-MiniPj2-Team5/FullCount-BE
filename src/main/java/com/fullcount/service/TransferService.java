@@ -34,45 +34,40 @@ public class TransferService {
 
     /** 양도 요청 + 채팅방 자동 생성 */
     @Transactional
-    public TransferDto.TransferRequestResponse requestTransfer(Long postId, Long buyerId) {
-        log.info("양도 요청 시작 - postId={}, buyerId={}", postId, buyerId);
+    public TransferDto.TransferRequestResponse requestTransferByRoomId(Long roomId, Long buyerId) {
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_ROOM_NOT_FOUND));
 
-        // author fetch join으로 N+1 방지
-        Post post = postRepository.findByIdWithAuthor(postId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
-
-        if (!post.getBoardType().equals(BoardType.TRANSFER)) {
-            throw new BusinessException(ErrorCode.TRANSFER_INVALID_STATUS);
+        TicketPost ticketPost = chatRoom.getTicketPost();
+        if (ticketPost == null) {
+            throw new BusinessException(ErrorCode.TICKET_NOT_FOUND);
         }
-        if (post.getAuthor().getId().equals(buyerId)) {
-            log.warn("양도 요청 실패 - 자신의 게시글에 양도 요청, postId={}, buyerId={}", postId, buyerId);
+
+        log.info("양도 요청 - roomId={}, ticketPostId={}, buyerId={}", roomId, ticketPost.getId(), buyerId);
+        log.info("중복 체크 결과: {}", transferRepository.existsByTicketPostId(ticketPost.getId()));
+
+        if (ticketPost.getAuthor().getId().equals(buyerId)) {
             throw new BusinessException(ErrorCode.TRANSFER_SELF_NOT_ALLOWED);
         }
-        if (transferRepository.existsByPostId(postId)) {
-            log.warn("양도 요청 실패 - 이미 양도 요청 존재, postId={}", postId);
+
+        if (transferRepository.existsByTicketPostId(ticketPost.getId())) {
             throw new BusinessException(ErrorCode.TRANSFER_ALREADY_EXISTS);
         }
 
         Member buyer = memberRepository.findById(buyerId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
-        // mapper로 엔티티 생성
-        Transfer transfer = TransferMapper.toEntity(post, buyer);
+        Transfer transfer = Transfer.builder()
+                .ticketPost(ticketPost)
+                .seller(ticketPost.getAuthor())
+                .buyer(buyer)
+                .price(ticketPost.getPrice())
+                .build();
         transferRepository.save(transfer);
 
-        // 게시글 상태 → 예약 중
-        post.reserve();
+        ticketPost.updateStatus(TicketPostStatus.RESERVED);
 
-        // 1:1 채팅방 자동 생성 후 chatRoomId 추출
-        Long chatRoomId = chatRoomRepository.findByPostId(postId)
-                .map(ChatRoom::getId)
-                .orElseGet(() -> chatRoomRepository.save(
-                        ChatRoomMapper.toEntity(ChatRoomType.ONE_ON_ONE, post, post.getAuthor(), buyer)).getId());
-
-        log.info("양도 요청 완료 - transferId={}, chatRoomId={}, sellerId={}, buyerId={}",
-                transfer.getId(), chatRoomId, post.getAuthor().getId(), buyerId);
-
-        return TransferMapper.toTransferRequestResponse(transfer, chatRoomId);
+        return TransferMapper.toTransferRequestResponse(transfer, roomId);
     }
 
     /** 에스크로 결제 완료 (잔액 차감) */
@@ -89,7 +84,6 @@ public class TransferService {
             throw new BusinessException(ErrorCode.ACCESS_DENIED);
         }
 
-        // 잔액 차감 (부족 시 BusinessException 발생)
         buyer.deduct(transfer.getPrice());
         transfer.payEscrow(buyer);
 
@@ -127,10 +121,14 @@ public class TransferService {
             throw new BusinessException(ErrorCode.ACCESS_DENIED);
         }
 
-        // 판매자에게 대금 지급
         transfer.getSeller().charge(transfer.getPrice());
         transfer.confirmTransfer();
-        transfer.getPost().close();
+
+        if (transfer.getPost() != null) {
+            transfer.getPost().close();
+        } else if (transfer.getTicketPost() != null) {
+            transfer.getTicketPost().updateStatus(TicketPostStatus.SOLD);
+        }
 
         log.info("인수 확정 완료 - transferId={}, status={}", transferId, transfer.getStatus());
         return TransferMapper.toTransferStatusResponse(transfer);
@@ -150,20 +148,17 @@ public class TransferService {
             throw new BusinessException(ErrorCode.ACCESS_DENIED);
         }
 
-        // 이미 종료된 거래는 취소 불가
         if (transfer.getStatus() == TransferStatus.COMPLETED ||
                 transfer.getStatus() == TransferStatus.CANCELLED) {
             log.warn("거래 취소 불가 - 이미 종료된 거래, transferId={}, status={}", transferId, transfer.getStatus());
             throw new BusinessException(ErrorCode.TRANSFER_INVALID_STATUS);
         }
 
-        // 티켓 전달 완료 이후에는 구매자만 취소 가능
         if (transfer.getStatus() == TransferStatus.TICKET_SENT && isSeller) {
             log.warn("거래 취소 불가 - 티켓 전달 완료 이후 판매자 취소 불가, transferId={}, sellerId={}", transferId, memberId);
             throw new BusinessException(ErrorCode.TRANSFER_INVALID_STATUS);
         }
 
-        // 에스크로 결제 이후 취소라면 구매자에게 환불
         if (transfer.getStatus() == TransferStatus.PAYMENT_COMPLETED ||
                 transfer.getStatus() == TransferStatus.TICKET_SENT) {
             transfer.getBuyer().charge(transfer.getPrice());
@@ -171,7 +166,6 @@ public class TransferService {
                     transferId, transfer.getBuyer().getId(), transfer.getPrice());
         }
 
-        // 취소 신청자 매너 온도 -0.1
         Member canceller = isSeller ? transfer.getSeller() : transfer.getBuyer();
         double before = canceller.getMannerTemperature();
         canceller.updateMannerTemperature(-0.1);
@@ -179,14 +173,19 @@ public class TransferService {
                 memberId, before, canceller.getMannerTemperature());
 
         transfer.cancelTransfer();
-        transfer.getPost().close();
+
+        if (transfer.getPost() != null) {
+            transfer.getPost().close();
+        } else if (transfer.getTicketPost() != null) {
+            transfer.getTicketPost().updateStatus(TicketPostStatus.SELLING);
+        }
 
         log.info("거래 취소 완료 - transferId={}, status={}", transferId, transfer.getStatus());
         return TransferMapper.toTransferStatusResponse(transfer);
     }
+
     @Transactional(readOnly = true)
     public PagedResponse<PostDto.PostResponse> getMyTransfers(Long memberId, Pageable pageable) {
-        // 내가 구매자(buyer)인 거래들을 가져와서 해당 게시글(Post) 정보를 반환
         Page<PostDto.PostResponse> page = transferRepository.findAllByBuyerId(memberId, pageable)
                 .map(transfer -> PostMapper.toResponse(transfer.getPost()));
         return PagedResponse.of(page);
@@ -195,5 +194,46 @@ public class TransferService {
     private Transfer getTransfer(Long transferId) {
         return transferRepository.findByIdWithDetails(transferId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.TRANSFER_NOT_FOUND));
+    }
+
+    public TransferDto.TransferResponse getTransferByRoomId(Long roomId) {
+        try {
+            return transferRepository.findByRoomId(roomId)
+                    .map(TransferMapper::toTransferResponse)
+                    .orElse(null);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    @Transactional
+    public TransferDto.TransferRequestResponse requestTransfer(Long postId, Long buyerId) {
+        Post post = postRepository.findByIdWithAuthor(postId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
+
+        if (!post.getBoardType().equals(BoardType.TRANSFER)) {
+            throw new BusinessException(ErrorCode.TRANSFER_INVALID_STATUS);
+        }
+        if (post.getAuthor().getId().equals(buyerId)) {
+            throw new BusinessException(ErrorCode.TRANSFER_SELF_NOT_ALLOWED);
+        }
+        if (transferRepository.existsByPostId(postId)) {
+            throw new BusinessException(ErrorCode.TRANSFER_ALREADY_EXISTS);
+        }
+
+        Member buyer = memberRepository.findById(buyerId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
+        Transfer transfer = TransferMapper.toEntity(post, buyer);
+        transferRepository.save(transfer);
+
+        post.reserve();
+
+        Long chatRoomId = chatRoomRepository.findByPostId(postId)
+                .map(ChatRoom::getId)
+                .orElseGet(() -> chatRoomRepository.save(
+                        ChatRoomMapper.toEntity(ChatRoomType.ONE_ON_ONE, post, post.getAuthor(), buyer)).getId());
+
+        return TransferMapper.toTransferRequestResponse(transfer, chatRoomId);
     }
 }

@@ -89,4 +89,24 @@ public class ChatRoomController {
         chatRoomService.markAsRead(memberId, roomId);
         return ResponseEntity.ok().build();
     }
+
+    @Operation(summary = "티켓 양도 1:1 채팅방 생성 or 조회 (연락하기)")
+    @PostMapping("/transfer/{postId}")
+    public ResponseEntity<ChatDTO.ChatRoomResponse> createTransferChatRoom(
+            @AuthenticationPrincipal Long memberId,
+            @PathVariable Long postId) {
+
+        Long roomId = chatRoomService.createOrFindTransferChatRoom(memberId, postId);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(chatRoomService.getChatRoomResponse(roomId));
+    }
+
+    @Operation(summary = "채팅방 나가기")
+    @DeleteMapping("/{roomId}/leave")
+    public ResponseEntity<Void> leaveChatRoom(
+            @AuthenticationPrincipal Long memberId,
+            @PathVariable Long roomId) {
+        chatRoomService.leaveChatRoom(memberId, roomId);
+        return ResponseEntity.noContent().build();
+    }
 }

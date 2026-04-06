@@ -53,6 +53,10 @@ public class ChatRoom {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ticket_post_id", nullable = true)
+    private TicketPost ticketPost;
+
     public void addParticipant(Member member) {
         if (member == null) {
             return;
@@ -69,4 +73,22 @@ public class ChatRoom {
                 .member(member)
                 .build());
     }
+
+    @Column(name = "initiator_left", nullable = false)
+    @Builder.Default
+    private boolean initiatorLeft = false;
+
+    @Column(name = "receiver_left", nullable = false)
+    @Builder.Default
+    private boolean receiverLeft = false;
+
+    public void markLeft(Long memberId) {
+        if (initiator != null && initiator.getId().equals(memberId)) {
+            this.initiatorLeft = true;
+        } else if (receiver != null && receiver.getId().equals(memberId)) {
+            this.receiverLeft = true;
+        }
+    }
+
+
 }

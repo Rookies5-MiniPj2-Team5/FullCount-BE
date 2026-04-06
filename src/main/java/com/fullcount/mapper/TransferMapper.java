@@ -9,14 +9,19 @@ public class TransferMapper {
     public static TransferDto.TransferResponse toTransferResponse(Transfer t) {
         if (t == null) return null;
 
+        Long postId = t.getPost() != null ? t.getPost().getId() :
+                (t.getTicketPost() != null ? t.getTicketPost().getId() : null);
+        String postTitle = t.getPost() != null ? t.getPost().getTitle() :
+                (t.getTicketPost() != null ? t.getTicketPost().getTitle() : null);
+
         return TransferDto.TransferResponse.builder()
                 .id(t.getId())
-                .postId(t.getPost().getId())
-                .postTitle(t.getPost().getTitle())
+                .postId(postId)
+                .postTitle(postTitle)
                 .sellerNickname(t.getSeller().getNickname())
                 .buyerNickname(t.getBuyer() != null ? t.getBuyer().getNickname() : null)
                 .sellerId(t.getSeller().getId())
-                .buyerId(t.getBuyer() != null ? t.getBuyer().getId() : null)  // null 체크 추가
+                .buyerId(t.getBuyer() != null ? t.getBuyer().getId() : null)
                 .price(t.getPrice())
                 .status(t.getStatus().name())
                 .createdAt(t.getCreatedAt())

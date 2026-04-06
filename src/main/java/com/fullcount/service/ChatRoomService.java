@@ -20,12 +20,9 @@ import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -38,6 +35,8 @@ public class ChatRoomService {
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
     private final ChatReadStatusRepository chatReadStatusRepository;
+    private final TransferRepository transferRepository;
+    private final TicketPostRepository ticketPostRepository;
 
     public PagedResponse<ChatDTO.ChatRoomResponse> getMyChatRooms(Long memberId, Pageable pageable) {
         log.info("채팅방 목록 조회 시작 - memberId={}, page={}, size={}", memberId, pageable.getPageNumber(), pageable.getPageSize());
@@ -216,7 +215,7 @@ public class ChatRoomService {
                     Member receiver = memberRepository.findById(targetUserId)
                             .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
-                    ChatRoom newRoom = ChatRoomMapper.toEntity(ChatRoomType.ONE_ON_ONE_DIRECT, null, initiator, receiver);
+                    ChatRoom newRoom = ChatRoomMapper.toEntity(ChatRoomType.ONE_ON_ONE_DIRECT, (Post) null, initiator, receiver);
                     Long newRoomId = chatRoomRepository.save(newRoom).getId();
                     log.info("새 직접 DM 생성 완료 - roomId={}", newRoomId);
                     return newRoomId;
@@ -249,5 +248,68 @@ public class ChatRoomService {
 
         status.updateLastRead(lastMessage.getId());
         chatReadStatusRepository.save(status);
+    }
+
+    @Transactional
+    public Long createOrFindTransferChatRoom(Long memberId, Long ticketPostId) {
+        TicketPost ticketPost = ticketPostRepository.findById(ticketPostId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.TICKET_NOT_FOUND));
+
+        if (ticketPost.getAuthor().getId().equals(memberId)) {
+            throw new BusinessException(ErrorCode.ACCESS_DENIED);
+        }
+
+        return chatRoomRepository.findByTicketPostId(ticketPostId)
+                .map(ChatRoom::getId)
+                .orElseGet(() -> {
+                    Member buyer = memberRepository.findById(memberId)
+                            .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+                    ChatRoom newRoom = ChatRoomMapper.toEntity(
+                            ChatRoomType.ONE_ON_ONE, ticketPost, ticketPost.getAuthor(), buyer);
+                    return chatRoomRepository.save(newRoom).getId();
+                });
+    }
+
+    @Transactional
+    public void leaveChatRoom(Long memberId, Long roomId) {
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_ROOM_NOT_FOUND));
+
+        switch (chatRoom.getRoomType()) {
+            case ONE_ON_ONE -> leaveOneOnOne(memberId, chatRoom);
+            case ONE_ON_ONE_DIRECT -> leaveOneOnOneDirect(memberId, chatRoom);
+            case GROUP_JOIN, GROUP_CREW -> leaveGroupRoom(memberId, chatRoom);
+        }
+    }
+
+    private void leaveOneOnOne(Long memberId, ChatRoom chatRoom) {
+        Long ticketPostId = chatRoom.getTicketPost() != null ? chatRoom.getTicketPost().getId() : null;
+        Long postId = chatRoom.getPost() != null ? chatRoom.getPost().getId() : null;
+
+        Optional<Transfer> transferOpt = ticketPostId != null
+                ? transferRepository.findByTicketPostId(ticketPostId).map(t -> (Transfer) t)
+                : postId != null ? transferRepository.findByPostId(postId) : Optional.empty();
+
+        transferOpt.ifPresentOrElse(
+                transfer -> {
+                    if (transfer.getStatus() != TransferStatus.COMPLETED &&
+                            transfer.getStatus() != TransferStatus.CANCELLED) {
+                        throw new BusinessException(ErrorCode.CHAT_LEAVE_NOT_ALLOWED);
+                    }
+                    chatRoom.markLeft(memberId);
+                },
+                () -> chatRoom.markLeft(memberId)
+        );
+    }
+
+    private void leaveOneOnOneDirect(Long memberId, ChatRoom chatRoom) {
+        chatRoom.markLeft(memberId);
+    }
+
+    private void leaveGroupRoom(Long memberId, ChatRoom chatRoom) {
+        chatRoom.getParticipants().stream()
+                .filter(p -> p.getMember().getId().equals(memberId))
+                .findFirst()
+                .ifPresent(p -> chatRoom.getParticipants().remove(p));
     }
 }

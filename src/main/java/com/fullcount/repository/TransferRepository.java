@@ -15,7 +15,7 @@ public interface TransferRepository extends JpaRepository<Transfer, Long> {
     boolean existsBySellerId(Long sellerId);
     boolean existsByBuyerId(Long buyerId);
 
-    @Query("SELECT t FROM Transfer t JOIN FETCH t.post JOIN FETCH t.seller LEFT JOIN FETCH t.buyer WHERE t.id = :id")
+    @Query("SELECT t FROM Transfer t LEFT JOIN FETCH t.post LEFT JOIN FETCH t.seller LEFT JOIN FETCH t.buyer WHERE t.id = :id")
     Optional<Transfer> findByIdWithDetails(@Param("id") Long id);
 
     @Query("SELECT t FROM Transfer t JOIN FETCH t.post JOIN FETCH t.seller LEFT JOIN FETCH t.buyer WHERE t.seller.id = :sellerId")
@@ -30,7 +30,16 @@ public interface TransferRepository extends JpaRepository<Transfer, Long> {
     @Query("SELECT t FROM Transfer t JOIN FETCH t.post JOIN FETCH t.seller LEFT JOIN FETCH t.buyer WHERE t.post.id = :postId")
     Optional<Transfer> findByPostId(@Param("postId") Long postId);
 
+    @Query("SELECT t FROM Transfer t " +
+            "JOIN FETCH t.seller LEFT JOIN FETCH t.buyer " +
+            "WHERE t.ticketPost.id = " +
+            "(SELECT c.ticketPost.id FROM ChatRoom c WHERE c.id = :roomId AND c.ticketPost IS NOT NULL)")
+    Optional<Transfer> findByRoomId(@Param("roomId") Long roomId);
+
+    Optional<Transfer> findByTicketPostId(Long ticketPostId);
+
     boolean existsByPostId(@Param("postId") Long postId);
+    boolean existsByTicketPostId(Long ticketPostId);
 
     @Query(value = "SELECT t.id FROM Transfer t " +
             "JOIN t.post p " +

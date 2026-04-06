@@ -36,16 +36,20 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
     @Query(value = "SELECT DISTINCT c FROM ChatRoom c " +
             "LEFT JOIN FETCH c.post p " +
             "LEFT JOIN FETCH p.author a " +
-            "WHERE ((c.roomType = com.fullcount.domain.ChatRoomType.ONE_ON_ONE " +
+            "WHERE (((c.roomType = com.fullcount.domain.ChatRoomType.ONE_ON_ONE " +
             "      OR c.roomType = com.fullcount.domain.ChatRoomType.ONE_ON_ONE_DIRECT) " +
             "   AND (c.initiator.id = :memberId OR c.receiver.id = :memberId)) " +
+            "   AND NOT (c.initiator.id = :memberId AND c.initiatorLeft = true) " +
+            "   AND NOT (c.receiver.id = :memberId AND c.receiverLeft = true)) " +
             "OR ((c.roomType <> com.fullcount.domain.ChatRoomType.ONE_ON_ONE " +
             "      AND c.roomType <> com.fullcount.domain.ChatRoomType.ONE_ON_ONE_DIRECT) " +
             "   AND EXISTS (SELECT 1 FROM ChatRoomParticipant cp WHERE cp.chatRoom = c AND cp.member.id = :memberId))",
             countQuery = "SELECT COUNT(DISTINCT c) FROM ChatRoom c " +
-                    "WHERE ((c.roomType = com.fullcount.domain.ChatRoomType.ONE_ON_ONE " +
+                    "WHERE (((c.roomType = com.fullcount.domain.ChatRoomType.ONE_ON_ONE " +
                     "      OR c.roomType = com.fullcount.domain.ChatRoomType.ONE_ON_ONE_DIRECT) " +
                     "   AND (c.initiator.id = :memberId OR c.receiver.id = :memberId)) " +
+                    "   AND NOT (c.initiator.id = :memberId AND c.initiatorLeft = true) " +
+                    "   AND NOT (c.receiver.id = :memberId AND c.receiverLeft = true)) " +
                     "OR ((c.roomType <> com.fullcount.domain.ChatRoomType.ONE_ON_ONE " +
                     "      AND c.roomType <> com.fullcount.domain.ChatRoomType.ONE_ON_ONE_DIRECT) " +
                     "   AND EXISTS (SELECT 1 FROM ChatRoomParticipant cp WHERE cp.chatRoom = c AND cp.member.id = :memberId))")
@@ -56,6 +60,8 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
             "LEFT JOIN FETCH p.author a " +
             "LEFT JOIN FETCH c.participants cp " +
             "LEFT JOIN FETCH cp.member " +
+            "LEFT JOIN FETCH c.initiator " +
+            "LEFT JOIN FETCH c.receiver " +
             "WHERE c.id = :roomId")
     Optional<ChatRoom> findByIdWithDetails(@Param("roomId") Long roomId);
 
@@ -81,4 +87,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
             "        AND c.roomType <> com.fullcount.domain.ChatRoomType.ONE_ON_ONE_DIRECT) " +
             "       AND EXISTS (SELECT 1 FROM ChatRoomParticipant cp WHERE cp.chatRoom = c AND cp.member.id = :memberId)))")
     boolean isParticipant(@Param("roomId") Long roomId, @Param("memberId") Long memberId);
+
+    @Query("SELECT c FROM ChatRoom c WHERE c.ticketPost.id = :ticketPostId")
+    Optional<ChatRoom> findByTicketPostId(@Param("ticketPostId") Long ticketPostId);
 }
