@@ -116,7 +116,34 @@ public class TicketPostService {
             throw new BusinessException(ErrorCode.ACCESS_DENIED);
         }
 
+        if (ticketPost.getStatus() != TicketPostStatus.SELLING) {
+            throw new BusinessException(ErrorCode.POST_NOT_EDITABLE);
+        }
+
         ticketPostRepository.delete(ticketPost);
+    }
+
+    /** 게시글 수정 (작성자 본인만 가능, 예약/완료 된 상태면 거부) */
+    @Transactional
+    public TicketPostDto.Response updateTicket(Long ticketPostId, Long memberId, TicketPostDto.TicketTransferRequestDTO req) {
+        TicketPost ticketPost = findTicketPostOrThrow(ticketPostId);
+
+        if (!ticketPost.isOwnedBy(memberId)) {
+            throw new BusinessException(ErrorCode.ACCESS_DENIED);
+        }
+
+        if (ticketPost.getStatus() != TicketPostStatus.SELLING) {
+            throw new BusinessException(ErrorCode.POST_NOT_EDITABLE);
+        }
+
+        String generatedTitle = String.format("[%s vs %s] %s %s", 
+                req.getHomeTeam(), req.getAwayTeam(), req.getStadium(), req.getSeatArea());
+
+        ticketPost.update(generatedTitle, req.getDescription(), req.getHomeTeam(), req.getAwayTeam(),
+                req.getMatchDate(), req.getMatchTime(), req.getStadium(), req.getSeatArea(),
+                req.getSeatBlock(), req.getSeatRow(), req.getPrice());
+
+        return TicketPostDto.Response.from(ticketPost);
     }
 
     // ────── private helper ──────
