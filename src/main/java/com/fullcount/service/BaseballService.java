@@ -213,8 +213,47 @@ public class BaseballService {
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
         try {
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-            JsonNode json = objectMapper.readTree(response.getBody());
+            org.springframework.http.ResponseEntity<String> response = restTemplate.exchange(url, org.springframework.http.HttpMethod.GET, entity, String.class);
+            com.fasterxml.jackson.databind.JsonNode json = objectMapper.readTree(response.getBody());
+            
+            // 정상적인 라이브 데이터가 배열에 담겨있는지 확인
+            com.fasterxml.jackson.databind.JsonNode gamesNode = json.path("result").path("games");
+            if (gamesNode.isMissingNode() || gamesNode.isEmpty()) {
+                // 네이버 라이브 데이터가 빈 배열이면 (과거 날짜이거나 경기가 없는 경우)
+                // 방금 KBO에서 긁어와서 저장된 DB 데이터를 조회하여 프론트엔드 형식에 맞춰 응답 구조를 생성
+                List<BaseballGame> dbGames = baseballGameRepository.findByGameDateStartingWithOrderByGameDateAscGameTimeAsc(date);
+                if (!dbGames.isEmpty()) {
+                    List<Map<String, Object>> mappedGames = dbGames.stream().map(g -> {
+                        Map<String, Object> map = new HashMap<>();
+                        map.put("gameId", g.getGameId());
+                        map.put("homeTeamCode", g.getHomeTeam());
+                        map.put("awayTeamCode", g.getAwayTeam());
+                        
+                        String statusCode = "SCHEDULED";
+                        if (g.isCanceled() || "취소".equals(g.getStatus())) {
+                            statusCode = "CANCEL";
+                        } else if ("종료".equals(g.getStatus()) || (g.getHomeScore() != null && g.getHomeScore() >= 0 && g.getAwayScore() != null && g.getAwayScore() >= 0)) {
+                            // 스코어가 존재하면 스크래핑이 완료된 '종료' 기믹으로 처리
+                            statusCode = "RESULT";
+                        }
+                        
+                        map.put("statusCode", statusCode);
+                        map.put("homeTeamScore", g.getHomeScore());
+                        map.put("awayTeamScore", g.getAwayScore());
+                        map.put("statusInfo", g.getStatus() != null ? g.getStatus() : "종료");
+                        map.put("gameDateTime", g.getGameDate() + "T" + (g.getGameTime() != null ? g.getGameTime() + ":00" : "18:30:00"));
+                        return map;
+                    }).collect(Collectors.toList());
+
+                    Map<String, Object> resultNode = new HashMap<>();
+                    resultNode.put("games", mappedGames);
+                    Map<String, Object> finalResponse = new HashMap<>();
+                    finalResponse.put("result", resultNode);
+                    
+                    return finalResponse;
+                }
+            }
+
             return objectMapper.convertValue(json, Map.class);
         } catch (Exception e) {
             log.error("라이브 게임 연동 중 오류 발생: {}", e.getMessage());
@@ -394,6 +433,13 @@ public class BaseballService {
      * Web Forms 방식이므로 Javascript 렌더링 우회를 위해 직접 데이터를 찌릅니다.
      */
     private List<Map<String, Object>> scrapeKboScoresByDate(String date) {
+        // 월요일(휴식일) 예외 처리: 데이터 자체가 없으므로 불필요한 스크래핑 시도 및 에러 방지
+        java.time.LocalDate targetDate = java.time.LocalDate.parse(date);
+        if (targetDate.getDayOfWeek() == java.time.DayOfWeek.MONDAY) {
+            log.info("ℹ️ {} (월요일)은 KBO 리그 정기 휴식일이므로 스크래핑을 진행하지 않습니다.", date);
+            return java.util.Collections.emptyList();
+        }
+
         String year = date.substring(0, 4); // "2026"
         String month = date.substring(5, 7); // "04"
         String shortDateStr = month + "." + date.substring(8, 10); // "04.05"
