@@ -36,9 +36,11 @@ public class PostController {
             @RequestParam(defaultValue = "CREW") BoardType boardType,
             @RequestParam(required = false) String teamId, // 팀 선택 탭
             @RequestParam(required = false) PostStatus status, // 모집 중 / 마감 필터
+            @RequestParam(defaultValue = "false") boolean participating,
+            @AuthenticationPrincipal Long memberId,
             @ParameterObject @PageableDefault(size = 9, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
-        return ResponseEntity.ok(postService.getPosts(boardType, teamId, status, pageable));
+        return ResponseEntity.ok(postService.getPosts(boardType, teamId, status, participating, memberId, pageable));
     }
 
     @Operation(summary = "팀 전용 게시글 목록")
@@ -110,5 +112,19 @@ public class PostController {
             @Valid @RequestBody PostDto.JoinMateRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(postService.joinMate(id, memberId, request));
+    }
+
+    @Operation(summary = "비공개 크루 - 대기 멤버 승인")
+    @PostMapping("/{postId}/members/{memberId}/approve")
+    public ResponseEntity<Void> approveCrewMember(@PathVariable Long postId, @PathVariable Long memberId, @AuthenticationPrincipal Long hostId) {
+        postService.approveCrewMember(postId, memberId, hostId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "비공개 크루 - 대기 멤버 거절")
+    @DeleteMapping("/{postId}/members/{memberId}/reject")
+    public ResponseEntity<Void> rejectCrewMember(@PathVariable Long postId, @PathVariable Long memberId, @AuthenticationPrincipal Long hostId) {
+        postService.rejectCrewMember(postId, memberId, hostId);
+        return ResponseEntity.ok().build();
     }
 }

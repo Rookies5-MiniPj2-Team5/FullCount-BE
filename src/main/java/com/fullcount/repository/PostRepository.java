@@ -146,6 +146,19 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             "FROM Post p")
     PostDashboardSummary fetchDashboardSummary();
 
+    /**
+     * 내가 참여 중인 게시글 목록 조회
+     */
+    @Query("SELECT DISTINCT p FROM Post p " +
+            "JOIN FETCH p.author a " +
+            "JOIN p.participants pc " +
+            "WHERE p.boardType = :boardType " +
+            "AND pc.member.id = :memberId " +
+            "ORDER BY p.createdAt DESC")
+    Page<Post> findParticipatingPosts(@Param("boardType") BoardType boardType,
+                                      @Param("memberId") Long memberId,
+                                      Pageable pageable);
+
     interface PostDashboardSummary {
         long getTotalCount();
         long getOpenCount();

@@ -1,11 +1,16 @@
 package com.fullcount.controller;
 
+import com.fullcount.dto.PostDto;
 import com.fullcount.dto.TransferDto;
+import com.fullcount.dto.common.PagedResponse;
 import com.fullcount.service.TransferService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -59,5 +64,13 @@ public class TransferController {
             @PathVariable Long transferId,
             @AuthenticationPrincipal Long memberId) {
         return ResponseEntity.ok(transferService.cancelTransfer(transferId, memberId));
+    }
+
+    @Operation(summary = "내가 신청한 양도 내역 조회")
+    @GetMapping("/me")
+    public ResponseEntity<PagedResponse<PostDto.PostResponse>> getMyTransfers(
+            @AuthenticationPrincipal Long memberId,
+            @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(transferService.getMyTransfers(memberId, pageable));
     }
 }

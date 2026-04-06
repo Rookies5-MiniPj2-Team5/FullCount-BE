@@ -47,7 +47,7 @@ public class PostService {
         } else if (req instanceof PostDto.CreateCrewRequest crewReq) {
             Team supportTeam = findTeam(crewReq.getSupportTeamId());
             post.setSupportTeam(supportTeam);
-            post.getParticipants().add(CrewParticipantMapper.toEntity(post, author, true, null));
+            post.getParticipants().add(CrewParticipantMapper.toEntity(post, author, true, null, true));
         } else if (req instanceof PostDto.CreateTransferRequest transferReq) {
             if (transferReq.getTicketPrice() < 0) {
                 throw new BusinessException(ErrorCode.TICKET_PRICE_EXCEEDED);
@@ -116,16 +116,25 @@ public class PostService {
             throw new BusinessException(ErrorCode.ALREADY_PARTICIPATING);
         }
 
-        if (post.getParticipants().size() >= post.getMaxParticipants()) {
+        long currentApprovedCount = post.getParticipants().stream()
+                .filter(p -> p.getIsApproved() == null || p.getIsApproved())
+                .count();
+
+        if (currentApprovedCount >= post.getMaxParticipants()) {
             throw new BusinessException(ErrorCode.CREW_FULL);
         }
 
+        boolean isApproved = true;
+        if (expectedBoardType == BoardType.CREW && Boolean.FALSE.equals(post.getIsPublic())) {
+            isApproved = false; // 비공개 글은 승인 대기!
+        }
+
+
+
         CrewParticipant participant = CrewParticipantMapper.toEntity(
-                post,
-                member,
-                false,
-                req != null ? req.getApplyMessage() : null
+                post, member, false, req != null ? req.getApplyMessage() : null, isApproved
         );
+
         post.getParticipants().add(participant);
         Post savedPost = postRepository.save(post);
         CrewParticipant savedParticipant = savedPost.getParticipants().stream()
@@ -191,6 +200,38 @@ public class PostService {
         postRepository.delete(post);
     }
 
+    @Transactional
+    public void approveCrewMember(Long postId, Long targetMemberId, Long hostId) {
+        Post post = findPostWithParticipants(postId);
+        if (!post.getAuthor().getId().equals(hostId)) throw new BusinessException(ErrorCode.ACCESS_DENIED);
+
+        CrewParticipant participant = post.getParticipants().stream()
+                .filter(p -> p.getMember().getId().equals(targetMemberId))
+                .findFirst()
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
+        // 정원 초과 검사 (승인된 사람만 셈)
+        long approvedCount = post.getParticipants().stream().filter(p -> p.getIsApproved() != null && p.getIsApproved()).count();
+        if (approvedCount >= post.getMaxParticipants()) throw new BusinessException(ErrorCode.CREW_FULL);
+
+        participant.approve(); // 승인 상태로 변경 (목록에 포함됨)
+    }
+
+    // 방장의 크루원 거절 메서드
+    @Transactional
+    public void rejectCrewMember(Long postId, Long targetMemberId, Long hostId) {
+        Post post = findPostWithParticipants(postId);
+        if (!post.getAuthor().getId().equals(hostId)) throw new BusinessException(ErrorCode.ACCESS_DENIED);
+
+        CrewParticipant participant = post.getParticipants().stream()
+                .filter(p -> p.getMember().getId().equals(targetMemberId))
+                .findFirst()
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
+        // 거절 시 참여자 명단에서 완전히 삭제 (이후 프론트엔드에서 알림/UI 처리)
+        post.getParticipants().remove(participant);
+    }
+
     // ── 내부 조회 헬퍼 ──────────────────────────────────────────────────────────
 
     /**
@@ -218,5 +259,24 @@ public class PostService {
     private Post findPostWithParticipants(Long postId) {
         return postRepository.findByIdWithParticipants(postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResponse<PostDto.PostResponse> getPosts(BoardType boardType, String teamIdStr, PostStatus status, boolean participating, Long memberId, Pageable pageable) {
+
+        // 참여 중인 목록 요청 시 처리
+        if (participating && memberId != null) {
+            Page<PostDto.PostResponse> page = postRepository.findParticipatingPosts(boardType, memberId, pageable)
+                    .map(PostMapper::toResponse);
+            return PagedResponse.of(page);
+        }
+
+        Long teamId = null;
+        if (teamIdStr != null && !teamIdStr.isBlank()) {
+            teamId = findTeam(teamIdStr).getId();
+        }
+        Page<PostDto.PostResponse> page = postRepository.findByFilters(boardType, teamId, status, pageable)
+                .map(PostMapper::toResponse);
+        return PagedResponse.of(page);
     }
 }
