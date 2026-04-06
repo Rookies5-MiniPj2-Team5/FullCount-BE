@@ -26,6 +26,7 @@ public class CrewParticipantMapper {
         if (participant == null) return null;
 
         return PostDto.CrewMemberResponse.builder()
+                .memberId(participant.getMember().getId())
                 .nickname(participant.getMember().getNickname())
                 .mannerTemperature(participant.getMember().getMannerTemperature())
                 .isLeader(participant.getIsLeader())

@@ -28,6 +28,10 @@ public class PostMapper {
 
     private static PostDto.MateResponse toMateResponse(Post post) {
         var builder = PostDto.MateResponse.builder();
+        int approvedCount = post.getParticipants() != null ?
+                (int) post.getParticipants().stream()
+                        .filter(p -> p.getIsApproved() == null || p.getIsApproved())
+                        .count() : 0;
         applyCommonResponse(builder, post);
         return builder
                 .matchDate(post.getMatchDate())
@@ -39,18 +43,22 @@ public class PostMapper {
                         : post.getSupportTeam()))
                 .profileImage(post.getAuthor() != null ? post.getAuthor().getProfileImageUrl() : null)
                 .viewCount(post.getViewCount())
-                .currentParticipants(post.getParticipants() != null ? post.getParticipants().size() : 0)
+                .currentParticipants(approvedCount)
                 .maxParticipants(post.getMaxParticipants())
                 .build();
     }
 
     private static PostDto.CrewResponse toCrewResponse(Post post) {
         var builder = PostDto.CrewResponse.builder();
+        int approvedCount = post.getParticipants() != null ?
+                (int) post.getParticipants().stream()
+                        .filter(p -> p.getIsApproved() == null || p.getIsApproved())
+                        .count() : 0;
         applyCommonResponse(builder, post);
         return builder
                 .supportTeamName(getName(post.getSupportTeam()))
                 .maxParticipants(post.getMaxParticipants())
-                .currentParticipants(post.getParticipants() != null ? post.getParticipants().size() : 0)
+                .currentParticipants(approvedCount)
                 .stadium(post.getStadium())
                 .matchDate(post.getMatchDate())
                 .matchTime(post.getMatchTime())

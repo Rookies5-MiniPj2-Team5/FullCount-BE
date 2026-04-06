@@ -116,7 +116,11 @@ public class PostService {
             throw new BusinessException(ErrorCode.ALREADY_PARTICIPATING);
         }
 
-        if (post.getParticipants().size() >= post.getMaxParticipants()) {
+        long currentApprovedCount = post.getParticipants().stream()
+                .filter(p -> p.getIsApproved() == null || p.getIsApproved())
+                .count();
+
+        if (currentApprovedCount >= post.getMaxParticipants()) {
             throw new BusinessException(ErrorCode.CREW_FULL);
         }
 
@@ -124,6 +128,8 @@ public class PostService {
         if (expectedBoardType == BoardType.CREW && Boolean.FALSE.equals(post.getIsPublic())) {
             isApproved = false; // 비공개 글은 승인 대기!
         }
+
+
 
         CrewParticipant participant = CrewParticipantMapper.toEntity(
                 post, member, false, req != null ? req.getApplyMessage() : null, isApproved
