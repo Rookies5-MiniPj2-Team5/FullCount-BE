@@ -1,86 +1,72 @@
-# ⚾ 풀카운트 (Full Count) - Backend
+# ⚾ FULL COUNT - Backend Repository
 
-야구 팬들을 위한 커뮤니티 및 안전한 에스크로 티켓 양도 플랫폼, **풀카운트**의 백엔드 저장소입니다.
+<p align="center">
+  <img src="https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Java_17-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Spring_Security-6DB33F?style=for-the-badge&logo=Spring-Security&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Spring_Data_JPA-6DB33F?style=for-the-badge&logo=spring&logoColor=white"/>
+  <img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white"/>
+  <img src="https://img.shields.io/badge/WebSocket(STOMP)-000000?style=for-the-badge&logo=websocket&logoColor=white"/>
+</p>
 
-## 🚀 주요 기능 (Backend)
-- **게시판 다형성 API**: 직관 크루(CREW), 메이트(MATE), 티켓 양도(TRANSFER) 등 타입별 맞춤형 데이터 처리 및 조회
-- **에스크로 티켓 양도**: 안전한 거래를 위한 5단계 상태 전이 시스템 및 정산 비즈니스 로직 구현
-- **실시간 채팅 서버**: WebSocket 및 STOMP 프로토콜 기반의 1:1 및 그룹 채팅 브로커 구축
-- **보안 및 인증**: JWT(JSON Web Token) 기반의 Stateless 인증 체계 및 Spring Security 권한 제어
-- **관리자 시스템**: Thymeleaf 기반의 회원 관리, 거래 모니터링 및 데이터 통계 대시보드
+## 📖 1. 프로젝트 개요 (Overview)
+FULL COUNT 프로젝트의 **백엔드 서버 레포지토리**입니다. Java와 Spring Boot 기반으로 구축된 본 서버는 정교한 RDBMS 기반 데이터를 처리하며, 에스크로 기반의 다단계 안전 결제 시스템 무결성 유지, 그리고 STOMP/WebSocket 기반의 분산형 푸시 알림 인프라를 제공하는 RESTful API 서버입니다.
 
-## 🛠 기술 스택
-- **Framework**: Spring Boot 3.2.5
-- **Language**: Java 17
-- **Database**: H2 (Dev), MySQL (Prod)
-- **ORM**: Spring Data JPA (Hibernate 6)
-- **Security**: Spring Security, JWT
-- **Real-time**: Spring WebSocket, STOMP
-- **Documentation**: SpringDoc OpenAPI 2.5 (Swagger)
+## ✨ 2. 핵심 기술 및 시스템 하이라이트
 
-## 🔗 Repository
-- **Backend**: [FullCount-BE](https://github.com/Rookies5-MiniPj2-Team5/FullCount-BE)
-- **Frontend**: [FullCount-FE](https://github.com/Rookies5-MiniPj2-Team5/FullCount-FE)
+### 🛡️ 에스크로 기반 상태 머신 시스템 (`TransferService.java`)
+- 중고 거래 시 발생하는 사기 위험을 방지하기 위해 엄격한 **5단계 트랜잭션 파이프라인**(요청 -> 결제예치(진행중) -> 티켓전달 -> 인수확정 -> 완료/취소)을 구축했습니다.
+- 원자적인 잔액 차감 및 정산 로직을 구현했으며, 최초 구매자와 판매자만이 본인의 상태 전이(State-transitioning) 엔드포인트를 호출할 수 있도록 엔티티 계층에서부터 강력한 접근 제어를 구현했습니다.
+- 부당한 거래 취소 시에는 **매너 온도(Manner Temperature)** 가 즉각 하락하도록 페널티 메커니즘을 자동화했습니다.
 
----
+### 🚀 Spring Data JPA 핵심 쿼리 최적화 및 N+1 문제 해결
+- 무거운 엔티티 연관 관계로 인해 발생하는 치명적인 `N+1` 쿼리 비효율을 완벽히 해결했습니다.
+- 특히 `TransferRepository.java`에서는 다대일/일대다로 엮여있는 `Post`, `TicketPost`, `Seller`, `Buyer` 속성을 한 번의 데이터베이스 호출로 해결할 수 있도록 커스텀 `@Query`와 `LEFT JOIN FETCH` 지시어 처리를 적용해 어드민 페이지 및 대용량 조회 시의 병목 현상을 방지했습니다.
 
-## 🏃 실행 방법
+### 📡 실시간 WebSocket 및 메시징 브로커 아키텍처
+- 전역 STOMP 브로커링을 서버 단에 도입해 지연 없는 양방향 통신을 지원합니다.
+- `ChatRoomController`를 통해 단순 1:1 통신뿐만 아니라 직관 메이트/크루의 성격에 따른 분할 통신(`GROUP_JOIN`, `GROUP_CREW`, `ONE_ON_ONE`) 인터페이스를 구현했으며, 메시지는 도달과 동시에 영속 계층(DB)에 비동기로 업데이트되어 오프라인 유저의 이력 조회까지 깔끔하게 지원합니다.
 
-백엔드 서버를 기동하기 위한 단계입니다.
+### 🔒 글로벌 단위 응답 정규화 및 보안 랩핑 적용
+- **`GlobalResponseAdvice.java`**: 클라이언트가 어떠한 종류의 예외나 데이터 객체(DTO)를 반환받더라도 항상 구조화된 `{ "success": true, "data": { ... } }` 포맷을 보장받을 수 있도록 응답을 일괄 정규화했습니다. (이 과정에서 발생할 수 있는 캐스팅 오류는 조건부 파싱으로 안전하게 차단)
+- **Spring Security + JWT**: 서블릿 통과 단계에서 무상태(Stateless) 기반의 필터 체인을 설계했습니다. 모든 API 요청은 검증된 토큰에서 `MemberId`를 추출해 ThreadLocal에 저장하므로 서비스 계층이 직접 토큰에 의존하지 않고도 안전하게 작동합니다.
 
-```powershell
-# 레포지토리 클론
-git clone https://github.com/Rookies5-MiniPj2-Team5/FullCount-BE.git
-cd FullCount-BE
+## 🏗️ 3. 백엔드 아키텍처 흐름도
+`[프로젝트 아키텍처 다이어그램 / 모델링(ERD) 이미지 삽입]`
 
-# 애플리케이션 실행 (Windows)
-.\gradlew.bat bootRun
+**계층형 구조 (Core Layers)**:
+- **도메인 계층 (`/domain`)**: `Member`, `Post`, `Transfer`, `ChatRooms` 등을 관장하는 순수 비즈니스 상태 엔티티.
+- **DTO 및 매퍼 계층 (`/dto`, `/mapper`)**: DB 모델인 Entity가 컨트롤러 및 외부로 노출되지 않도록 완벽히 격리된 페이로드 구조 운용.
+- **서비스 계층 (`/service`)**: `@Transactional(readOnly=true)`를 디폴트로 설정해 데드락 우려 및 DB 락 자원을 최적화하고 명시적인 쓰기 조작 메서드에만 트랜잭션을 허용합니다.
+- **예외 처리 핸들러 (`/advice`, `/exception`)**: 발생 가능한 에러를 도메인 중심의 커스텀 예외(`CustomBusinessExceptions`)로 선언하여 유지 보수의 효율을 끌어올렸습니다.
+
+## 🚀 4. 설치 및 구동 가이드
+
+```bash
+# 1. 레포지토리 클론
+git clone [백엔드 깃허브 URL 삽입]
+cd fullcount-backend
+
+# 2. 데이터베이스(DB) 및 환경 설정
+# src/main/resources/application.yml 파일 내에서 MySQL 및 JWT 보안 키를 직접 구성 환경에 맞춰 변경하세요.
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/fullcount_db
+    username: your_db_user
+    password: your_db_password
+
+# 3. 프로젝트 빌드 및 실행 (Gradle)
+./gradlew clean build -x test
+java -jar build/libs/fullcount-0.0.1-SNAPSHOT.jar
+
+# 개발환경(IDE) 없이 명령어 실행 시
+./gradlew bootRun
 ```
-- **API Swagger**: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
-- **H2 Console**: [http://localhost:8080/h2-console](http://localhost:8080/h2-console)
-- **Admin Page**: [http://localhost:8080/admin/dashboard](http://localhost:8080/admin/dashboard)
 
----
+## 🔐 5. 핵심 API 엔드포인트 주요 예시
 
-## 📁 프로젝트 구조
-```text
-src/main/java/com/fullcount/
-├── controller/   # API 엔드포인트 정의
-├── service/      # 비즈니스 로직 처리
-├── domain/       # JPA 엔티티 및 도메인 모델
-├── repository/   # 데이터베이스 액세스 (Spring Data JPA)
-├── dto/          # 계층 간 데이터 전송 객체 (Request/Response)
-├── mapper/       # Entity <-> DTO 변환 로직
-├── security/     # JWT 필터 및 인증/인가 설정
-├── config/       # 전역 설정 (Swagger, WebSocket, JPA 등)
-└── exception/    # 전역 예외 처리 및 커스텀 에러 코드
-```
+- `POST   /api/transfers/request/{roomId}` : 채팅방 연동을 통해 원클릭으로 티켓 양도 에스크로 거래를 개시합니다.
+- `DELETE /api/posts/{postId}/members/{memberId}/expel` : 크루장/관리자 전용 기능으로 직관 모집 방 내부의 멤버 수용 강제 조정(퇴장) 로직을 제어합니다.
+- `GET    /api/ticket-transfers` : 날짜(`matchDate`), 구장(`stadium`), 거래 상태(`status`) 등 다중 옵션을 활용한 동적 쿼리 페이징 처리의 기준점입니다.
 
----
-
-## 🛠 Git Branch Strategy
-
-본 프로젝트는 원활한 협업을 위해 다음과 같은 브랜치 전략을 따릅니다.
-
-- **main**: 코드 통합 및 배포를 위한 기준 브랜치입니다.
-- **feature/{기능명}**: 각자 맡은 기능 개발을 진행하는 개인 작업 브랜치입니다.
-  - 예: `feature/post-api`, `feature/chat-server`
-
-### 협업 프로세스
-1. 본인의 작업 브랜치에서 개발을 완료합니다. (`git checkout -b feature/my-feature`)
-2. 작업 내용을 원격 레포지토리에 Push 합니다.
-3. GitHub에서 **Pull Request(PR)**를 생성하여 팀원들에게 공유합니다.
-4. 팀원의 리뷰 또는 확인을 거친 후 `main` 브랜치로 **Merge** 합니다.
-
-### 원격 저장소 설정 방법
-기존 프로젝트의 원격 저장소를 백엔드 전용 레포지토리로 교체하려면 아래 명령어를 사용하세요.
-```powershell
-# 기존 origin 삭제
-git remote remove origin
-
-# 새 origin 등록 (Backend 기준)
-git remote add origin https://github.com/Rookies5-MiniPj2-Team5/FullCount-BE.git
-
-# 현재 연결 상태 확인
-git remote -v
-```
+`[스웨거 프론트(Swagger UI) API 문서 스크린샷 삽입]`

@@ -5,6 +5,7 @@ import com.fullcount.domain.Member;
 import com.fullcount.domain.MemberRole;
 import com.fullcount.domain.Post;
 import com.fullcount.domain.PostStatus;
+import com.fullcount.domain.TicketPostStatus;
 import com.fullcount.domain.Transfer;
 import com.fullcount.domain.TransferStatus;
 import com.fullcount.dto.admin.DashboardSummary;
@@ -209,7 +210,11 @@ public class AdminService {
 
         transfer.getSeller().charge(transfer.getPrice());
         transfer.confirmTransfer();
-        transfer.getPost().close();
+        if (transfer.getPost() != null) {
+            transfer.getPost().close();
+        } else if (transfer.getTicketPost() != null) {
+            transfer.getTicketPost().updateStatus(TicketPostStatus.SOLD);
+        }
 
         log.info("관리자 거래 완료 처리 완료: transferId={}, sellerId={}, buyerId={}, amount={}",
                 transferId, transfer.getSeller().getId(), transfer.getBuyer().getId(), transfer.getPrice());
@@ -228,7 +233,11 @@ public class AdminService {
         }
 
         transfer.cancelTransfer();
-        transfer.getPost().close();
+        if (transfer.getPost() != null) {
+            transfer.getPost().close();
+        } else if (transfer.getTicketPost() != null) {
+            transfer.getTicketPost().updateStatus(TicketPostStatus.SELLING);
+        }
 
         log.info("관리자 거래 취소 처리 완료: transferId={}, buyerRefunded={}, amount={}",
                 transferId, transfer.getBuyer() != null, transfer.getPrice());
