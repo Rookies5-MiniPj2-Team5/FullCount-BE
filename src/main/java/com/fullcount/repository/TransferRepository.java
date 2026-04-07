@@ -42,20 +42,22 @@ public interface TransferRepository extends JpaRepository<Transfer, Long> {
     boolean existsByTicketPostId(Long ticketPostId);
 
     @Query(value = "SELECT t.id FROM Transfer t " +
-            "JOIN t.post p " +
+            "LEFT JOIN t.post p " +
+            "LEFT JOIN t.ticketPost tp " +
             "JOIN t.seller s " +
             "LEFT JOIN t.buyer b " +
             "WHERE (:status IS NULL OR t.status = :status) " +
-            "AND (:keyword IS NULL OR LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "AND (:keyword IS NULL OR LOWER(COALESCE(p.title, tp.title)) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
             "   OR LOWER(s.nickname) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
             "   OR (b IS NOT NULL AND LOWER(b.nickname) LIKE LOWER(CONCAT('%', :keyword, '%')))) " +
             "ORDER BY t.createdAt DESC",
             countQuery = "SELECT COUNT(t) FROM Transfer t " +
-                    "JOIN t.post p " +
+                    "LEFT JOIN t.post p " +
+                    "LEFT JOIN t.ticketPost tp " +
                     "JOIN t.seller s " +
                     "LEFT JOIN t.buyer b " +
                     "WHERE (:status IS NULL OR t.status = :status) " +
-                    "AND (:keyword IS NULL OR LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+                    "AND (:keyword IS NULL OR LOWER(COALESCE(p.title, tp.title)) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
                     "   OR LOWER(s.nickname) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
                     "   OR (b IS NOT NULL AND LOWER(b.nickname) LIKE LOWER(CONCAT('%', :keyword, '%'))))")
     Page<Long> searchIdsForAdmin(@Param("keyword") String keyword,
@@ -63,14 +65,16 @@ public interface TransferRepository extends JpaRepository<Transfer, Long> {
                                  Pageable pageable);
 
     @Query("SELECT t FROM Transfer t " +
-            "JOIN FETCH t.post p " +
+            "LEFT JOIN FETCH t.post p " +
+            "LEFT JOIN FETCH t.ticketPost tp " +
             "JOIN FETCH t.seller s " +
             "LEFT JOIN FETCH t.buyer b " +
             "WHERE t.id IN :ids")
     List<Transfer> findAllForAdminByIdIn(@Param("ids") List<Long> ids);
 
     @Query("SELECT t FROM Transfer t " +
-            "JOIN FETCH t.post p " +
+            "LEFT JOIN FETCH t.post p " +
+            "LEFT JOIN FETCH t.ticketPost tp " +
             "JOIN FETCH t.seller s " +
             "LEFT JOIN FETCH t.buyer b " +
             "ORDER BY t.createdAt DESC")
