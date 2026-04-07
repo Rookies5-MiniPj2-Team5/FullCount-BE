@@ -155,10 +155,10 @@ public class ChatRoomService {
         log.info("채팅방 생성 시작 - memberId={}, postId={}, chatRoomType={}", memberId, postId, chatRoomType);
 
         Post post = getPostForGroupChatRoom(postId, chatRoomType);
-//        if (!post.getAuthor().getId().equals(memberId)) {
-//            log.warn("채팅방 생성 접근 거부 - memberId={}, postId={}", memberId, postId);
-//            throw new BusinessException(ErrorCode.ACCESS_DENIED);
-//        }
+        if (!post.getAuthor().getId().equals(memberId)) {
+            log.warn("채팅방 생성 접근 거부 - memberId={}, postId={}", memberId, postId);
+            throw new BusinessException(ErrorCode.ACCESS_DENIED);
+        }
 
         Long roomId = chatRoomRepository.findByPostId(postId)
                 .map(ChatRoom::getId)
