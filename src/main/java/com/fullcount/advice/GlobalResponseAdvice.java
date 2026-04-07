@@ -7,6 +7,7 @@ import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
+import com.fullcount.exception.ErrorResponse;
 
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
@@ -31,7 +32,7 @@ public class GlobalResponseAdvice implements ResponseBodyAdvice<Object> {
         if (body instanceof Map && ((Map<?, ?>) body).containsKey("success")) {
             return body;
         }
-        if (body != null && body.getClass().getName().contains("ErrorResponse")) {
+        if (body instanceof ErrorResponse) {
             return body;
         }
 

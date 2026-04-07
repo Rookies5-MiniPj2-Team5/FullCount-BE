@@ -8,6 +8,7 @@ spring:
       max-request-size: 10MB
 
   jpa:
+    defer-datasource-initialization: true
     hibernate:
       ddl-auto: update
     show-sql: true
@@ -35,7 +36,7 @@ app:
     access-token-expiry: 3600000       # 1시간
     refresh-token-expiry: 604800000    # 7일
 
-# 🌟 추가된 부분: 파일 업로드 경로를 전역 변수로 설정
+# 파일 업로드 경로를 전역 변수로 설정
 file:
   upload-dir: ${user.dir}/uploads/
 
@@ -50,6 +51,7 @@ spring:
     driver-class-name: org.h2.Driver
     username: sa
     password:
+    generate-unique-name: false # H2 랜덤 DB 이름 생성 방지 추가
 
   h2:
     console:
@@ -60,8 +62,7 @@ spring:
     init:
       mode: always
       data-locations: classpath:data.sql
-  jpa:
-    defer-datasource-initialization: true
+
 
 ---
 spring:
@@ -77,4 +78,4 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate

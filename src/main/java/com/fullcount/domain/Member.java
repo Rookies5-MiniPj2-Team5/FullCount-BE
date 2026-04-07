@@ -3,6 +3,7 @@ package com.fullcount.domain;
 import com.fullcount.exception.BusinessException;
 import com.fullcount.exception.ErrorCode;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -23,9 +24,12 @@ public class Member {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "이메일은 필수입니다")
+    @Email(message = "올바른 이메일 형식이어야 합니다")
     @Column(name = "email", nullable = false, unique = true, length = 100)
     private String email;
 
+    @NotBlank(message = "닉네임은 필수입니다")
     @Column(name = "nickname", nullable = false, unique = true, length = 30)
     private String nickname;
 
@@ -71,7 +75,7 @@ public class Member {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Column(columnDefinition = "LONGTEXT")
+    @Column(name = "profile_image_url", length = 500)
     private String profileImageUrl;
 
     @Column(nullable = false)
